@@ -1,0 +1,100 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.dobleo.rpa.lala</groupId>
+	<artifactId>Lala_POC</artifactId>
+	<packaging>jar</packaging>
+	<version>0.0.1</version>
+
+	<parent>
+		<groupId>com.novayre.jidoka.robot</groupId>
+		<artifactId>jidoka-robot-parent</artifactId>
+		<version>4.0.0</version>
+	</parent>
+
+	<name>Lala_POC Jidoka robot</name>
+	<url>http://www.novayre.es</url>
+
+	<properties>
+	</properties>
+
+	<profiles>
+
+		<profile>
+
+			<id>jidoka-repo</id>
+
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		
+			<repositories>
+				<repository>
+					<id>jidoka</id>
+					<url>http://dobleo.jidoka.io:8081/nexus/content/repositories/jidoka-api/</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+				</repository>
+			</repositories>
+			
+			<pluginRepositories>
+				<pluginRepository>
+					<id>jidoka</id>
+					<url>http://dobleo.jidoka.io:8081/nexus/content/repositories/jidoka-api/</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+				</pluginRepository>
+			</pluginRepositories>
+
+			<distributionManagement>
+				<repository>
+					<id>jidoka</id>
+					<name>jidoka</name>
+					<url>http://dobleo.jidoka.io:8081/nexus/content/repositories/jidoka-api/</url>
+					<layout>default</layout>
+				</repository>
+			</distributionManagement>
+			
+		</profile>
+
+	</profiles>
+	
+	<dependencies>
+		<!--
+		<dependency>
+			<groupId>com.novayre.jidoka.module</groupId>
+			<artifactId>jidoka-browser-api</artifactId>
+	  		<version>${jidoka.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.novayre.jidoka.module</groupId>
+			<artifactId>jidoka-data-provider-api</artifactId>
+	  		<version>${jidoka.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.novayre.jidoka.module</groupId>
+			<artifactId>jidoka-falcon-api</artifactId>
+	  		<version>${jidoka.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.novayre.jidoka.module</groupId>
+			<artifactId>jidoka-social-api</artifactId>
+	  		<version>${jidoka.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.novayre.jidoka.module</groupId>
+			<artifactId>jidoka-xml-api</artifactId>
+	  		<version>${jidoka.version}</version>
+		</dependency>
+		-->
+	</dependencies>
+</project>
