@@ -13,6 +13,7 @@ public class Document {
     private int id;
     private String numeroFolio;
     private String nombre;
+    private String porcentajeIncidencia;
 
     public int getId() {
         return id;
@@ -36,5 +37,13 @@ public class Document {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+    
+    public String getPorcentajeIncidencia() {
+        return porcentajeIncidencia;
+    }
+
+    public void setPorcentajeIncidencia(String porcentajeIncidencia) {
+        this.porcentajeIncidencia = porcentajeIncidencia;
     }
 }

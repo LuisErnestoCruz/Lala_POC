@@ -62,6 +62,8 @@ public class MyRobot implements IRobot {
         private DatabaseUtilities databaseUtilities;
 	private String databasePath;
         private String excelFilePath;
+        private String folioNumber;
+        private String fileName;
         private static final String PARAM_INPUT_FILE = "inputFile";
         private static final String DATABASE_NAME = "grupolala";
         private static final String TABLE_DOCUMENTS = "documento";
@@ -105,6 +107,8 @@ public class MyRobot implements IRobot {
                 receptionsColumns = null;
                 salesColumns = null;
                 databasePath = "";
+                fileName = server.getParameters().get(PARAM_INPUT_FILE);
+                excelFilePath = Paths.get(server.getCurrentDir(), fileName).toString();
 	}
         
         public void createDatabase() throws Exception
@@ -227,8 +231,6 @@ public class MyRobot implements IRobot {
                             }
 
                         }
-                        
-                        //listReception.add(reception);
                         databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
                     }
                 }
@@ -237,16 +239,6 @@ public class MyRobot implements IRobot {
             server.info("Read Sheet " + folioNumber + "Excel File Successfully"); 
             
             server.info("Add Reception Information into Database"); 
-            /*if(listReception != null)
-            {
-                if(listReception.size() > 0)
-                {
-                    for(int b = 0; b < listReception.size(); b++)
-                    {
-                        databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, listReception.get(b)); 
-                    }
-                }
-            }*/
             
             sheet = null; 
             iteratorRow = null;
@@ -320,7 +312,6 @@ public class MyRobot implements IRobot {
                         }
                         
                         databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
-                        //listSale.add(sale);
                     }
                     else if(maxColumnNumber == 20 && columnNameSale == false)
                     {
@@ -333,20 +324,259 @@ public class MyRobot implements IRobot {
             server.info("Read Sheet Venta Excel File Successfully"); 
             
             server.info("Add Sale Information into Database"); 
-            /*if(listSale != null)
-            {
-                if(listSale.size() > 0)
-                {
-                    for(int d = 0; d < listSale.size(); d++)
-                    {
-                        databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale.get(d)); 
-                    }
-                }
-            }*/
             
             server.info("Read Complete Excel File was Successfull");
             
             //System.out.println("Creado para ambos formatos");
+        }
+        
+        public void readExcelFolioSheet() throws Exception
+        {
+            folioNumber = null;
+            fileName = null;
+            Document document = new Document(); 
+            Workbook book = null;
+            server.info("Open File Excel"); 
+            FileInputStream inputFile = new FileInputStream(new File(excelFilePath));
+            server.info("Get input File Information");
+            fileName = server.getParameters().get(PARAM_INPUT_FILE);
+            server.info("Obtain Excel File Path");
+            excelFilePath = Paths.get(server.getCurrentDir(), fileName).toString();
+            server.info("Excel File Path: " + excelFilePath);
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            server.info("Get Name from Second Sheet into Excel");
+            folioNumber = book.getSheetName(1);
+            server.info("Name of Second Sheet is: " + folioNumber);
+            server.info("Set information to Document object");
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(fileName);
+            document.setPorcentajeIncidencia("0.05");
+            server.info("Insert into documento Table Information");
+            databaseUtilities.insertIntoDocument(server, databasePath, TABLE_DOCUMENTS, documentColumns, document);
+            server.info("Insert into documento Table was successful");
+            server.info("Close Excel File"); 
+            book.close();
+        }
+        
+        public void readExcelReceptionSheet() throws Exception
+        {
+            int idFolio = 0;
+            int columnNumberRow = 0;
+            int maxColumnNumberRow = 0;
+            int totalCellBlank = 0;
+            int totalColumn = 0;
+            String cellValue = null;
+            Document document = new Document();
+            Reception reception = new Reception();
+            Workbook book = null;
+            Row row = null;
+            Sheet receptionSheet = null;
+            FileInputStream inputFile = null;
+            Iterator<Cell> iteratorCell = null;
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            Date date = null;
+            SimpleDateFormat dateFormat = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            server.info("Set Information into document Object");
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(fileName);
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(excelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            server.info("Get Sheet from Excel File");
+            receptionSheet = book.getSheetAt(1);
+            server.info("Read All Filled Row From Sheet: " + receptionSheet.getSheetName()); 
+            server.info("Insert Data Information Into recepciones Table");
+            for(int a = 0; a < receptionSheet.getLastRowNum(); a++)
+            {
+                row = receptionSheet.getRow(a);
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+                if(columnNumberRow > maxColumnNumberRow)
+                {
+                    maxColumnNumberRow = columnNumberRow;
+                }
+                
+                if(maxColumnNumberRow > 10)
+                {
+                    totalCellBlank = 0;
+                    iteratorCell = null;
+                    reception = null;
+                    reception = new Reception();
+                    reception.setIdFolio(idFolio);
+                    totalColumn = maxColumnNumberRow - 1;
+                    iteratorCell = row.cellIterator();
+                    
+                    while(iteratorCell.hasNext())
+                    {
+                        dataFormatter = new DataFormatter();
+                        cellValue = dataFormatter.formatCellValue(iteratorCell.next()); 
+                        if(StringUtils.isBlank(cellValue))
+                        {
+                            totalCellBlank = totalCellBlank + 1; 
+                        }
+                    }
+                    
+                    if(totalColumn == 10 && totalCellBlank < 6)
+                    {
+                        for(int b = 0; b < totalColumn; b++)
+                        {
+                            dataFormatter = new DataFormatter();
+                            cellValue = null;
+                            cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                            switch(b)
+                            {
+                                case 0: reception.setMtvo(cellValue); break;
+                                case 1: reception.setTienda(cellValue); break;
+                                case 2: reception.setRecibo(cellValue); break;
+                                case 3: reception.setOrden(cellValue); break;
+                                case 4: reception.setAdicional(cellValue); break;
+                                case 5: reception.setRemision(cellValue); break;
+                                case 6: date = row.getCell(b).getDateCellValue(); 
+                                dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                reception.setFecha(dateFormat.format(date));
+                                break;
+                                case 7: reception.setValor(decimalFormat.format(row.getCell(b).getNumericCellValue())); break;
+                                case 8: reception.setIva(cellValue.replace("$", "")); break; 
+                                case 9: reception.setNeto(decimalFormat.format(row.getCell(b).getNumericCellValue())); break;
+                                default: break;
+                            }
+
+                        }
+                        databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                    }
+                    
+                    
+                }
+                
+            }
+            server.info("Insert Data Information into recepciones Table was sucessful");
+            server.info("Close Excel File"); 
+            book.close();
+            
+        }
+        
+        public void readExcelSaleSheet() throws Exception
+        {
+            boolean checkSaleColumns = false;
+            int idFolio = 0;
+            short columnNumberRow = 0;
+            short maxColumnNumberRow = 0; 
+            String cellValue = null;
+            Document document = new Document();
+            Sale sale = new Sale();
+            Workbook book = null;
+            Sheet saleSheet = null;
+            Row row = null; 
+            FileInputStream inputFile = null;
+            SimpleDateFormat dateFormat = null;
+            Date date = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            server.info("Set Information into document Object");
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(fileName);
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(excelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            server.info("Get Sheet from Excel File");
+            saleSheet = book.getSheetAt(3);
+            server.info("Read All Filled Row From Sheet: " + saleSheet.getSheetName()); 
+            server.info("Insert Data Information Into ventas Table");
+            for(int a = 0; a < saleSheet.getLastRowNum(); a++)
+            {
+                row = null;
+                row = saleSheet.getRow(a); 
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+                if(columnNumberRow > maxColumnNumberRow)
+                {
+                    maxColumnNumberRow = columnNumberRow;
+                }
+                
+                if(maxColumnNumberRow == 20)
+                {
+                    sale = null; 
+                    sale = new Sale(); 
+                    sale.setIdFolio(idFolio);
+                    
+                    if(maxColumnNumberRow == 20 && checkSaleColumns == true)
+                    {
+                        if(row != null)
+                        {
+                            if(row.getCell(0) != null)
+                            {
+                                date = row.getCell(0).getDateCellValue();
+                                if(date == null)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        for(int b = 0; b < maxColumnNumberRow; b++)
+                        {
+                            dataFormatter = new DataFormatter();
+                            cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                            switch(b)
+                            {
+                                case 0: dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                date = row.getCell(b).getDateCellValue(); 
+                                sale.setFecha(dateFormat.format(date));
+                                break;
+                                case 1: sale.setPedidoAdicional(cellValue); break;
+                                case 2: sale.setFactura(cellValue); break;
+                                case 3: sale.setFolio(cellValue); break;
+                                case 4: sale.setSolicitante(cellValue); break;
+                                case 5: sale.setCedis(cellValue); break;
+                                case 6: sale.setDestinatario(cellValue); break;
+                                case 7: sale.setNombreDestinatario(cellValue); break;
+                                case 8: sale.setFacturaRemisionSicav(cellValue); break; 
+                                case 9: if(StringUtils.isBlank(cellValue)){ sale.setImporte(null); } else { sale.setImporte(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 10: sale.setCliente(cellValue); break;
+                                case 11: sale.setRefFact(cellValue); break;
+                                case 12: sale.setReferencia(cellValue);  break;
+                                case 13: sale.setClvRef2(cellValue); break;
+                                case 14: sale.setClvRef3(cellValue); break;
+                                case 15: if(StringUtils.isBlank(cellValue)){ sale.setFechaDoc(null);} else { dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                date = row.getCell(b).getDateCellValue();
+                                sale.setFechaDoc(dateFormat.format(date));
+                                }
+                                break;
+                                case 16: sale.setVencNeto(cellValue); break;
+                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(null); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 18: sale.setCe(cellValue); break;
+                                case 19: sale.setDiv(cellValue); break;
+                                default: break;
+                            }
+                        }
+                        databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
+                    }
+                    else if(maxColumnNumberRow == 20 && checkSaleColumns == false)
+                    {
+                        checkSaleColumns = true;
+                    }
+                }
+            }
+            server.info("Insert Data Information into ventas Table was sucessful");
+            server.info("Close Excel File");
+            book.close();
+            
         }
 	/**
 	 * Action "openNotepad"
