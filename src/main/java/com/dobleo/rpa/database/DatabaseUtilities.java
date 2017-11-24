@@ -196,6 +196,7 @@ public class DatabaseUtilities {
                         case 0: columnParameters += columns.get(a) + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"; break;
                         case 1: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
                         case 2: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 3: columnParameters += " " + columns.get(a) + " REAL NOT NULL,"; break;
                         default: columnParameters += " TEXT NOT NULL,"; break; 
                     }
                 }
@@ -265,6 +266,8 @@ public class DatabaseUtilities {
             sqlQuery.append("'" + document.getNumeroFolio() + "'"); 
             sqlQuery.append(","); 
             sqlQuery.append("'"+ document.getNombre() + "'");
+            sqlQuery.append(",");
+            sqlQuery.append("" + document.getPorcentajeIncidencia() + ""); 
             sqlQuery.append(");");
             statement.executeUpdate(sqlQuery.toString());
             statement.close();
@@ -573,6 +576,7 @@ public class DatabaseUtilities {
         documentColumns.put(0,"id");
         documentColumns.put(1, "numero_folio");
         documentColumns.put(2, "nombre");
+        documentColumns.put(3, "porcentaje_incidencia");
     }
     
     public void receptionTableColumns()
