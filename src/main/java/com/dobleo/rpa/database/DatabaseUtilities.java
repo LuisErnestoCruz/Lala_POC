@@ -6,6 +6,7 @@
 package com.dobleo.rpa.database;
 
 import com.dobleo.rpa.models.Document;
+import com.dobleo.rpa.models.Link;
 import com.dobleo.rpa.models.Reception;
 import com.dobleo.rpa.models.Sale;
 import com.novayre.jidoka.client.api.IJidokaServer;
@@ -20,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -291,7 +293,8 @@ public class DatabaseUtilities {
             String receptionInformation = "";
             Connection connection = connectDatabase(server, url);
             connection.setAutoCommit(false);
-            Statement statement = connection.createStatement(); 
+            //Statement statement = connection.createStatement(); 
+            PreparedStatement prepareStatement = null; 
             StringBuilder sqlQuery = new StringBuilder();
             sqlQuery.append("INSERT INTO recepciones");
             sqlQuery.append(" (");
@@ -311,8 +314,22 @@ public class DatabaseUtilities {
             receptionInformation = receptionInformation(columns, reception);
             sqlQuery.append(receptionInformation);
             sqlQuery.append(");");
-            statement.executeUpdate(sqlQuery.toString());
-            statement.close();
+            prepareStatement = connection.prepareStatement(sqlQuery.toString());
+            prepareStatement.setInt(1, reception.getIdFolio());
+            prepareStatement.setString(2, reception.getMtvo());
+            prepareStatement.setString(3, reception.getTienda());
+            prepareStatement.setString(4, reception.getRecibo());
+            prepareStatement.setString(5, reception.getOrden());
+            prepareStatement.setString(6, reception.getAdicional());
+            prepareStatement.setString(7, reception.getRemision());
+            prepareStatement.setString(8, reception.getFecha());
+            prepareStatement.setString(9, reception.getValor());
+            prepareStatement.setString(10, reception.getIva());
+            prepareStatement.setString(11, reception.getNeto());
+            prepareStatement.executeUpdate();
+            //statement.executeUpdate(sqlQuery.toString());
+            //statement.close();
+            prepareStatement.close();
             connection.commit();
             connection.close();
         }
@@ -377,6 +394,7 @@ public class DatabaseUtilities {
             if(StringUtils.isBlank(sale.getImpteMl())) { prepareStatement.setString(19, null);} else { prepareStatement.setDouble(19, Double.parseDouble(sale.getImpteMl())); }
             prepareStatement.setString(20, sale.getCe());
             prepareStatement.setString(21, sale.getDiv());
+            
             prepareStatement.executeUpdate();
             //statement.executeUpdate(sqlQuery.toString());
             //statement.close();
@@ -405,7 +423,7 @@ public class DatabaseUtilities {
                 {
                     switch(a)
                     {
-                        case 0: receptionInformation += "NULL,"; break;
+                        /*case 0: receptionInformation += "NULL,"; break;
                         case 1: receptionInformation += "" + reception.getIdFolio() + ","; break;
                         case 2: receptionInformation += "'" + reception.getMtvo() + "',"; break;
                         case 3: receptionInformation += "'" + reception.getTienda() + "',"; break;
@@ -417,7 +435,21 @@ public class DatabaseUtilities {
                         case 9: receptionInformation += reception.getValor() + ","; break;
                         case 10: receptionInformation += reception.getIva() + ","; break;
                         case 11: receptionInformation += reception.getNeto(); break;
-                        default: receptionInformation += ""; break;
+                        default: receptionInformation += ""; break;*/
+                        case 0: receptionInformation += "NULL,"; break;
+                        case 1: receptionInformation += "?,"; break;
+                        case 2: receptionInformation += "?,"; break;
+                        case 3: receptionInformation += "?,"; break;
+                        case 4: receptionInformation += "?,"; break;
+                        case 5: receptionInformation += "?,"; break;
+                        case 6: receptionInformation += "?,"; break;
+                        case 7: receptionInformation += "?,"; break;
+                        case 8: receptionInformation += "?,"; break;
+                        case 9: receptionInformation += "?,"; break;
+                        case 10: receptionInformation += "?,"; break;
+                        case 11: receptionInformation += "?"; break;
+                        default: receptionInformation += "?"; break;
+                        
                     }
                 }
             }
@@ -566,6 +598,97 @@ public class DatabaseUtilities {
             server.error(sw.toString());
         }
         return id;
+    }
+    
+    public ArrayList<Link> searchByStoreDateAmount(IJidokaServer<?> server, String url, int idFolio)
+    {
+        ArrayList<Link> listResult = new ArrayList<Link>(); 
+        try
+        {
+            Reception reception = new Reception();
+            Sale sale = new Sale();
+            Link link = new Link();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = null;
+            sqlQuery = "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(ventas.nombre_destinatario, ' ', ''), INSTR(REPLACE(ventas.nombre_destinatario, ' ', ''), '-')+1, length(REPLACE(ventas.nombre_destinatario, ' ', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(recepciones.tienda, ' ', ''), INSTR(REPLACE(recepciones.tienda, ' ', ''), '-')+1, length(REPLACE(recepciones.tienda, ' ', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto, " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_remision <> ventas_remisionSicav) AND (recepciones_adicional <> ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)) " +
+            "GROUP BY idVenta " +
+            "ORDER BY ventas_destinatario";
+            server.info("Query:" + sqlQuery);
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, idFolio);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next())
+            {
+                link = new Link(); 
+                reception = new Reception();
+                sale = new Sale();
+                sale.setFecha(resultSet.getString("ventas_fecha"));
+                sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
+                sale.setFactura(resultSet.getString("ventas_factura"));
+                sale.setFolio(resultSet.getString("ventas_folio"));
+                sale.setSolicitante(resultSet.getString("ventas_solicitante"));
+                sale.setCedis(resultSet.getString("ventas_cedis"));
+                sale.setDestinatario(resultSet.getString("ventas_destinatario"));
+                sale.setNombreDestinatario(resultSet.getString("ventas_nombre_destinatario"));
+                sale.setFacturaRemisionSicav(resultSet.getString("ventas_remisionSicav"));
+                sale.setImporte(resultSet.getString("ventas_importe"));
+                reception.setAdicional(resultSet.getString("recepciones_adicional"));
+                reception.setTienda(resultSet.getString("recepciones_tienda"));
+                reception.setRemision(resultSet.getString("recepciones_remision"));
+                reception.setFecha(resultSet.getString("recepciones_fecha"));
+                reception.setNeto(resultSet.getString("recepciones_neto"));
+                link.setAbreviacionVenta(resultSet.getString("ventas_abreviacion_factura"));
+                link.setDiferencia(resultSet.getString("amarre_diferencia"));
+                link.setPorcentaje(resultSet.getString("amarre_porcentaje"));
+                link.setBusqueda("Fecha - Tienda - Importe");
+                link.setRecepcion(reception);
+                link.setVenta(sale);
+                listResult.add(link);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listResult = new ArrayList<Link>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listResult;
     }
     
     public void documentTableColumns()
