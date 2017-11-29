@@ -35,6 +35,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.monitorjbl.xlsx.StreamingReader;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import org.apache.poi.ss.usermodel.CellType;
 
 /**
  * My robot
@@ -237,7 +238,7 @@ public class MyRobot implements IRobot {
                             }
 
                         }
-                        databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                        //databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
                     }
                 }
 
@@ -317,7 +318,7 @@ public class MyRobot implements IRobot {
 
                         }
                         
-                        databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
+                        //databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
                     }
                     else if(maxColumnNumber == 20 && columnNameSale == false)
                     {
@@ -374,6 +375,7 @@ public class MyRobot implements IRobot {
             int totalCellBlank = 0;
             int totalColumn = 0;
             int columnIndex = 0;
+            ArrayList<Reception> listReception = new ArrayList<Reception>(); 
             String cellValue = null;
             Document document = new Document();
             Reception reception = new Reception();
@@ -540,12 +542,14 @@ public class MyRobot implements IRobot {
                             //}
                             
                         }
-                        databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                        listReception.add(reception);
+                        //databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
                     }
                     
                     
                 }
             }
+            databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, listReception);
             server.info("Insert Data Information into recepciones Table was sucessful");
             server.info("Close Excel File"); 
             book.close();
@@ -569,6 +573,7 @@ public class MyRobot implements IRobot {
             Date date = null;
             DataFormatter dataFormatter = new DataFormatter();
             DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            ArrayList<Sale> listSale = new ArrayList<Sale>();
             server.info("Set Information into document Object");
             document.setNumeroFolio(folioNumber);
             document.setNombre(fileName);
@@ -654,7 +659,8 @@ public class MyRobot implements IRobot {
                                 default: break;
                             }
                         }
-                        databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
+                        listSale.add(sale); 
+                        //databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
                     }
                     else if(maxColumnNumberRow == 20 && checkSaleColumns == false)
                     {
@@ -749,6 +755,7 @@ public class MyRobot implements IRobot {
                     }
                 }
             }*/
+            databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale); 
             server.info("Insert Data Information into ventas Table was sucessful");
             server.info("Close Excel File");
             book.close();
@@ -841,6 +848,238 @@ public class MyRobot implements IRobot {
             server.info("Cerrado Excel"); 
         }
         
+        public void processNotMatch() throws Exception
+        {
+            //int number1 = 0; 
+            //int number2 = 0;
+            int idFolio = 0; 
+            ArrayList<Sale> listSale = new ArrayList<Sale>();
+            ArrayList<Reception> listReception = new ArrayList<Reception>();
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet sheet;
+            Row rowColumn = null; 
+            Document document = new Document(); 
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(fileName);
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(excelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Create Sheet from Excel File");
+            sheet = book.createSheet("Punto 11");
+            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            rowColumn = sheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
+            listSale = databaseUtilities.getSalesNotMatch(server, databasePath, idFolio);
+            listReception = databaseUtilities.getReceptionsNotMatch(server, databasePath, idFolio);
+            server.info("Total de Ventas que no tienen una relacion: " + listSale.size());
+            server.info("Total de Ventas reportadas por Tienda que no tienen relacion: " + listReception.size()); 
+            //server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            server.info("Escribiendo Ventas que no tienen relacion para el Punto 11");
+            for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }
+            
+            for(Sale sale: listSale)
+            {
+                rowCount++;
+                Row row = sheet.createRow(rowCount);
+                columnCount = 0;
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: if(StringUtils.isBlank(sale.getFecha())){cell.setCellValue("");}else{cell.setCellValue(sale.getFecha());} columnCount++; break; 
+                        case 1: if(StringUtils.isBlank(sale.getPedidoAdicional())){cell.setCellValue("");}else{cell.setCellValue(sale.getPedidoAdicional());} columnCount++; break;
+                        case 2: if(StringUtils.isBlank(sale.getFactura())){cell.setCellValue("");}else{cell.setCellValue(sale.getFactura());} columnCount++; break;
+                        case 3: if(StringUtils.isBlank(sale.getFolio())){cell.setCellValue("");}else{cell.setCellValue(sale.getFolio());} columnCount++; break;
+                        case 4: if(StringUtils.isBlank(sale.getSolicitante())){cell.setCellValue("");}else{cell.setCellValue(sale.getSolicitante());} columnCount++; break;
+                        case 5: if(StringUtils.isBlank(sale.getCedis())){cell.setCellValue("");}else{cell.setCellValue(sale.getCedis());} columnCount++; break;
+                        case 6: if(StringUtils.isBlank(sale.getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(sale.getDestinatario());} columnCount++; break;
+                        case 7: if(StringUtils.isBlank(sale.getNombreDestinatario())){cell.setCellValue("");}else{cell.setCellValue(sale.getNombreDestinatario());} columnCount++; break;
+                        case 8: if(StringUtils.isBlank(sale.getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(sale.getFacturaRemisionSicav().substring(0, 3));} columnCount++; break;
+                        case 9: if(StringUtils.isBlank(sale.getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(sale.getFacturaRemisionSicav().substring(3, sale.getFacturaRemisionSicav().length()));} columnCount++; break;
+                        case 10: if(StringUtils.isBlank(sale.getImporte())){cell.setCellValue("");}else{cell.setCellValue(sale.getImporte());} columnCount++; break;
+                        default: break; 
+                    }
+                }
+            }
+            
+            for(Reception reception: listReception)
+            {
+                Row row = sheet.createRow(rowCount);
+                columnCount = 0;
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: columnCount++; break; 
+                        case 1: columnCount++; break;
+                        case 2: columnCount++; break;
+                        case 3: columnCount++; break;
+                        case 4: columnCount++; break;
+                        case 5: columnCount++; break;
+                        case 6: columnCount++; break;
+                        case 7: columnCount++; break;
+                        case 8: columnCount++; break;
+                        case 9: columnCount++; break;
+                        case 10: columnCount++; break;
+                        case 11: cell.setCellValue(""); columnCount++; break;
+                        case 12: if(StringUtils.isBlank(reception.getAdicional())){cell.setCellValue("");}else{cell.setCellValue(reception.getAdicional());} columnCount++; break;
+                        case 13: if(StringUtils.isBlank(reception.getTienda())){cell.setCellValue("");}else{cell.setCellValue(reception.getTienda());} columnCount++; break;
+                        case 14: if(StringUtils.isBlank(reception.getRemision())){cell.setCellValue("");}else{cell.setCellValue(reception.getRemision());} columnCount++; break;
+                        case 15: if(StringUtils.isBlank(reception.getFecha())){cell.setCellValue("");}else{cell.setCellValue(reception.getFecha());} columnCount++; break;
+                        case 16: if(StringUtils.isBlank(reception.getNeto())){cell.setCellValue("");}else{cell.setCellValue(reception.getNeto());} columnCount++; break;
+                        default: break; 
+                    }
+                }
+                rowCount++;
+            }
+            server.info("Añadiendolos al archivo Excel");
+            FileOutputStream outputStream = new FileOutputStream(excelFilePath);
+            book.write(outputStream);
+            book.close();
+            outputStream.close();
+            server.info("Cerrado Excel"); 
+        }
+        
+        public void processLinkIntoExcel() throws Exception
+        {
+            //int number1 = 0; 
+            //int number2 = 0;
+            int idFolio = 0; 
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet linkSheet;
+            Row rowColumn = null; 
+            Document document = new Document(); 
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(fileName);
+            Iterator<Row> iterator1 = null;
+            Iterator<Row> iterator2 = null;
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(excelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Get Sheet from Excel File");
+            linkSheet = book.getSheetAt(4);
+            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            int timesBlank = 0;
+            //rowColumn = linkSheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + linkSheet.getSheetName());
+            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio);
+            server.info("Total de Link Elementos: " + listTenPoint.size());
+            //server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            server.info("Escribiendo Datos del Punto 10");
+            /*for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }*/
+            server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            for(int a = 0; a < linkSheet.getLastRowNum(); a++)
+            {
+                Row currentSheetRow = linkSheet.getRow(a);
+                
+                if(currentSheetRow != null)
+                {
+                    timesBlank = 0; 
+                    Iterator<Cell> iteratorCell = currentSheetRow.iterator();
+                    columnCount = 0;
+                    while(iteratorCell.hasNext())
+                    {
+                        Cell cell = iteratorCell.next(); 
+                        if(cell.getCellTypeEnum() == CellType.BLANK || cell.getCellTypeEnum() == CellType._NONE)
+                        {
+                            columnCount++;
+                        }
+                        else 
+                        {
+                            timesBlank = 0;
+                        }
+                        
+                        if(columnCount == 24)
+                        {
+                            timesBlank++;
+                        }
+                    }
+                }
+                else if(currentSheetRow == null)
+                {
+                    timesBlank++;
+                }
+                
+                if(timesBlank == 10)
+                {
+                    server.info("Indice en donde esta vacio: " + a);
+                    break;
+                }
+                
+                /*for(Link link: listTenPoint)
+                {
+                    rowCount++;
+                    Row row = linkSheet.createRow(rowCount);
+                    columnCount = 0;
+                    for(String columnNameValue: columnNames)
+                    {
+                        Cell cell = row.createCell(columnCount);
+                        switch(columnCount)
+                        {
+                            case 0: if(StringUtils.isBlank(link.getVenta().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFecha());} columnCount++; break; 
+                            case 1: if(StringUtils.isBlank(link.getVenta().getPedidoAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getPedidoAdicional());} columnCount++; break;
+                            case 2: if(StringUtils.isBlank(link.getVenta().getFactura())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFactura());} columnCount++; break;
+                            case 3: if(StringUtils.isBlank(link.getVenta().getFolio())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFolio());} columnCount++; break;
+                            case 4: if(StringUtils.isBlank(link.getVenta().getSolicitante())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getSolicitante());} columnCount++; break;
+                            case 5: if(StringUtils.isBlank(link.getVenta().getCedis())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getCedis());} columnCount++; break;
+                            case 6: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                            case 7: if(StringUtils.isBlank(link.getVenta().getNombreDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getNombreDestinatario());} columnCount++; break;
+                            case 8: if(StringUtils.isBlank(link.getAbreviacionVenta())){cell.setCellValue("");}else{cell.setCellValue(link.getAbreviacionVenta());} columnCount++; break;
+                            case 9: if(StringUtils.isBlank(link.getVenta().getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFacturaRemisionSicav());} columnCount++; break;
+                            case 10: if(StringUtils.isBlank(link.getVenta().getImporte())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getImporte());} columnCount++; break;
+                            case 11: cell.setCellValue(""); columnCount++; break;
+                            case 12: if(StringUtils.isBlank(link.getRecepcion().getAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getAdicional());} columnCount++; break;
+                            case 13: if(StringUtils.isBlank(link.getRecepcion().getTienda())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getTienda());} columnCount++; break;
+                            case 14: if(StringUtils.isBlank(link.getRecepcion().getRemision())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getRemision());} columnCount++; break;
+                            case 15: if(StringUtils.isBlank(link.getRecepcion().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getFecha());} columnCount++; break;
+                            case 16: if(StringUtils.isBlank(link.getRecepcion().getNeto())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getNeto());} columnCount++; break;
+                            case 17: cell.setCellValue(""); columnCount++; break;
+                            case 18: if(StringUtils.isBlank(link.getDiferencia())){cell.setCellValue("");}else{cell.setCellValue(link.getDiferencia());} columnCount++; break; 
+                            case 19: if(StringUtils.isBlank(link.getPorcentaje())){cell.setCellValue("");}else{cell.setCellValue(link.getPorcentaje());} columnCount++; break;
+                            case 20: cell.setCellValue(""); columnCount++; break;
+                            case 21: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                            case 22: cell.setCellValue(""); columnCount++; break;
+                            case 23: if(StringUtils.isBlank(link.getBusqueda())){cell.setCellValue("");}else{cell.setCellValue(link.getBusqueda());} columnCount++; break;
+                            default: break; 
+                        }
+                    }
+                }*/
+            }
+            server.info("Añadiendolos al archivo Excel");
+            //FileOutputStream outputStream = new FileOutputStream(excelFilePath);
+            //book.write(outputStream);
+            book.close();
+            //outputStream.close();
+            server.info("Cerrado Excel"); 
+        }
         /*public String hasMoreLink() throws Exception
         {
             return currentLinkIndex < listTenPoint.size() ? "yes" : "no"; 

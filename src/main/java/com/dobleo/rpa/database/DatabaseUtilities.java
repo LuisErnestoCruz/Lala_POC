@@ -286,10 +286,11 @@ public class DatabaseUtilities {
         }
     }
     
-    public static void insertIntoReception(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, Reception reception)
+    public static void insertIntoReception(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Reception> listReception)
     {
         try
         {
+            int times = 0;
             String receptionInformation = "";
             Connection connection = connectDatabase(server, url);
             connection.setAutoCommit(false);
@@ -311,24 +312,36 @@ public class DatabaseUtilities {
             sqlQuery.append(")"); 
             sqlQuery.append(" VALUES");
             sqlQuery.append(" (");
-            receptionInformation = receptionInformation(columns, reception);
+            receptionInformation = receptionInformation(columns);
             sqlQuery.append(receptionInformation);
             sqlQuery.append(");");
             prepareStatement = connection.prepareStatement(sqlQuery.toString());
-            prepareStatement.setInt(1, reception.getIdFolio());
-            prepareStatement.setString(2, reception.getMtvo());
-            prepareStatement.setString(3, reception.getTienda());
-            prepareStatement.setString(4, reception.getRecibo());
-            prepareStatement.setString(5, reception.getOrden());
-            prepareStatement.setString(6, reception.getAdicional());
-            prepareStatement.setString(7, reception.getRemision());
-            prepareStatement.setString(8, reception.getFecha());
-            prepareStatement.setString(9, reception.getValor());
-            prepareStatement.setString(10, reception.getIva());
-            prepareStatement.setString(11, reception.getNeto());
-            prepareStatement.executeUpdate();
+            
+            for(Reception reception: listReception)
+            {
+                prepareStatement.setInt(1, reception.getIdFolio());
+                prepareStatement.setString(2, reception.getMtvo());
+                prepareStatement.setString(3, reception.getTienda());
+                prepareStatement.setString(4, reception.getRecibo());
+                prepareStatement.setString(5, reception.getOrden());
+                prepareStatement.setString(6, reception.getAdicional());
+                prepareStatement.setString(7, reception.getRemision());
+                prepareStatement.setString(8, reception.getFecha());
+                prepareStatement.setString(9, reception.getValor());
+                prepareStatement.setString(10, reception.getIva());
+                prepareStatement.setString(11, reception.getNeto());
+                prepareStatement.addBatch();
+                times++;
+                
+                if(times % 1000 == 0 || times == listReception.size())
+                {
+                    prepareStatement.executeBatch();
+                }
+            }
+            //prepareStatement.executeUpdate();
             //statement.executeUpdate(sqlQuery.toString());
             //statement.close();
+            prepareStatement.executeBatch();
             prepareStatement.close();
             connection.commit();
             connection.close();
@@ -343,10 +356,11 @@ public class DatabaseUtilities {
         }
     }
     
-    public static void insertIntoSale(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, Sale sale)
+    public static void insertIntoSale(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Sale> listSale)
     {
         try
         {
+            int times = 0;
             String saleInformation = "";
             Connection connection = connectDatabase(server, url);
             connection.setAutoCommit(false);
@@ -368,36 +382,47 @@ public class DatabaseUtilities {
             sqlQuery.append(")"); 
             sqlQuery.append(" VALUES");
             sqlQuery.append(" (");
-            saleInformation = saleInformation(columns, sale);
+            saleInformation = saleInformation(columns);
             sqlQuery.append(saleInformation);
             sqlQuery.append(");");
             //server.info("Query Insert: " + sqlQuery.toString()); 
             prepareStatement = connection.prepareStatement(sqlQuery.toString());
-            prepareStatement.setInt(1, sale.getIdFolio());
-            prepareStatement.setString(2, sale.getFecha());
-            prepareStatement.setString(3, sale.getPedidoAdicional());
-            prepareStatement.setString(4, sale.getFactura());
-            prepareStatement.setString(5, sale.getFolio());
-            prepareStatement.setString(6, sale.getSolicitante());
-            prepareStatement.setString(7, sale.getCedis());
-            prepareStatement.setString(8, sale.getDestinatario());
-            prepareStatement.setString(9, sale.getNombreDestinatario());
-            prepareStatement.setString(10, sale.getFacturaRemisionSicav());
-            prepareStatement.setDouble(11, Double.parseDouble(sale.getImporte()));
-            prepareStatement.setString(12, sale.getCliente());
-            prepareStatement.setString(13, sale.getRefFact());
-            prepareStatement.setString(14, sale.getReferencia());
-            prepareStatement.setString(15, sale.getClvRef2());
-            prepareStatement.setString(16, sale.getClvRef3());
-            prepareStatement.setString(17, sale.getFechaDoc());
-            prepareStatement.setString(18, sale.getVencNeto());
-            if(StringUtils.isBlank(sale.getImpteMl())) { prepareStatement.setString(19, null);} else { prepareStatement.setDouble(19, Double.parseDouble(sale.getImpteMl())); }
-            prepareStatement.setString(20, sale.getCe());
-            prepareStatement.setString(21, sale.getDiv());
+            for(Sale sale: listSale)
+            {
+                prepareStatement.setInt(1, sale.getIdFolio());
+                prepareStatement.setString(2, sale.getFecha());
+                prepareStatement.setString(3, sale.getPedidoAdicional());
+                prepareStatement.setString(4, sale.getFactura());
+                prepareStatement.setString(5, sale.getFolio());
+                prepareStatement.setString(6, sale.getSolicitante());
+                prepareStatement.setString(7, sale.getCedis());
+                prepareStatement.setString(8, sale.getDestinatario());
+                prepareStatement.setString(9, sale.getNombreDestinatario());
+                prepareStatement.setString(10, sale.getFacturaRemisionSicav());
+                prepareStatement.setDouble(11, Double.parseDouble(sale.getImporte()));
+                prepareStatement.setString(12, sale.getCliente());
+                prepareStatement.setString(13, sale.getRefFact());
+                prepareStatement.setString(14, sale.getReferencia());
+                prepareStatement.setString(15, sale.getClvRef2());
+                prepareStatement.setString(16, sale.getClvRef3());
+                prepareStatement.setString(17, sale.getFechaDoc());
+                prepareStatement.setString(18, sale.getVencNeto());
+                if(StringUtils.isBlank(sale.getImpteMl())) { prepareStatement.setString(19, null);} else { prepareStatement.setDouble(19, Double.parseDouble(sale.getImpteMl())); }
+                prepareStatement.setString(20, sale.getCe());
+                prepareStatement.setString(21, sale.getDiv());
+                prepareStatement.addBatch();
+                times++;
+                
+                if(times % 1000 == 0 || times == listSale.size())
+                {
+                    prepareStatement.executeBatch();
+                }
+            }
             
-            prepareStatement.executeUpdate();
+            //prepareStatement.executeUpdate();
             //statement.executeUpdate(sqlQuery.toString());
             //statement.close();
+            prepareStatement.executeBatch();
             prepareStatement.close();
             connection.commit();
             connection.close();
@@ -412,10 +437,11 @@ public class DatabaseUtilities {
         }
     }
     
-    public static String receptionInformation(Map<Integer, String> columns, Reception reception)
+    public static String receptionInformation(Map<Integer, String> columns)
     {
         String receptionInformation = "";
-        if(columns != null && reception != null)
+        //if(columns != null && reception != null)
+        if(columns != null)
         {
             if(columns.size() > 0)
             {
@@ -457,10 +483,11 @@ public class DatabaseUtilities {
         return receptionInformation;
     }
     
-    public static String saleInformation(Map<Integer, String> columns, Sale sale)
+    public static String saleInformation(Map<Integer, String> columns)
     {
         String saleInformation = "";
-        if(columns != null && sale != null)
+        //if(columns != null && sale != null)
+        if(columns != null)
         {
             if(columns.size() > 0)
             {
@@ -622,7 +649,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(ventas.nombre_destinatario, ' ', ''), INSTR(REPLACE(ventas.nombre_destinatario, ' ', ''), '-')+1, length(REPLACE(ventas.nombre_destinatario, ' ', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -630,7 +657,7 @@ public class DatabaseUtilities {
             "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(recepciones.tienda, ' ', ''), INSTR(REPLACE(recepciones.tienda, ' ', ''), '-')+1, length(REPLACE(recepciones.tienda, ' ', ''))) AS recepciones_tienda2, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -690,6 +717,304 @@ public class DatabaseUtilities {
         }
         return listResult;
     }
+    
+    public ArrayList<Sale> getSalesNotMatch(IJidokaServer<?> server, String url, int idFolio)
+    {
+        ArrayList<Sale> listSaleResult = new ArrayList<Sale>(); 
+        try
+        {
+            Sale sale = new Sale();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = null;
+            sqlQuery = "SELECT * FROM ventas WHERE idFolio = ? AND id NOT IN(SELECT idVenta FROM (SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto, " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones_remision <> ventas_remisionSicav) AND (recepciones_adicional <> ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)) " +
+            "GROUP BY idVenta " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
+            "GROUP BY idVenta " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "GROUP BY idVenta " +
+            "ORDER BY ventas_destinatario) " +
+            "ORDER BY idVenta);";
+            
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, idFolio);
+            preparedStatement.setInt(2, idFolio);
+            preparedStatement.setInt(3, idFolio);
+            preparedStatement.setInt(4, idFolio);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next())
+            {
+                sale = new Sale();
+                sale.setId(resultSet.getInt("id"));
+                sale.setFolio(resultSet.getString("idFolio"));
+                sale.setFecha(resultSet.getString("fecha"));
+                sale.setPedidoAdicional(resultSet.getString("pedido_adicional"));
+                sale.setFactura(resultSet.getString("factura"));
+                sale.setFolio(resultSet.getString("folio"));
+                sale.setSolicitante(resultSet.getString("solicitante"));
+                sale.setCedis(resultSet.getString("cedis"));
+                sale.setDestinatario(resultSet.getString("destinatario"));
+                sale.setNombreDestinatario(resultSet.getString("nombre_destinatario"));
+                sale.setFacturaRemisionSicav(resultSet.getString("factura_remisionSicav"));
+                sale.setImporte(resultSet.getString("importe"));
+                sale.setCliente(resultSet.getString("cliente"));
+                sale.setRefFact(resultSet.getString("ref_fact"));
+                sale.setReferencia(resultSet.getString("referencia"));
+                sale.setClvRef2(resultSet.getString("clv_ref2"));
+                sale.setClvRef3(resultSet.getString("clv_ref3"));
+                sale.setFechaDoc(resultSet.getString("fecha_doc"));
+                sale.setVencNeto(resultSet.getString("venc_neto"));
+                sale.setImpteMl(resultSet.getString("impteML"));
+                sale.setCe(resultSet.getString("ce"));
+                sale.setDiv(resultSet.getString("div"));
+                listSaleResult.add(sale);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listSaleResult = new ArrayList<Sale>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listSaleResult;
+    }
+    
+    public ArrayList<Reception> getReceptionsNotMatch(IJidokaServer<?> server, String url, int idFolio)
+    {
+        ArrayList<Reception> listReceptionResult = new ArrayList<Reception>(); 
+        try
+        {
+            Reception reception = new Reception();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = null;
+            sqlQuery = "SELECT * FROM recepciones WHERE idFolio = ? AND id NOT IN(SELECT idRecepcion FROM (SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_remision <> ventas_remisionSicav) AND (recepciones_adicional <> ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)) " +
+            "GROUP BY idRecepcion " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
+            "GROUP BY idRecepcion " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "GROUP BY idRecepcion " +
+            "ORDER BY ventas_destinatario) " +
+            "ORDER BY idRecepcion);";
+            
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, idFolio);
+            preparedStatement.setInt(2, idFolio);
+            preparedStatement.setInt(3, idFolio);
+            preparedStatement.setInt(4, idFolio);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next())
+            {
+                reception = new Reception();
+                reception.setId(resultSet.getInt("id"));
+                reception.setIdFolio(resultSet.getInt("idFolio"));
+                reception.setMtvo(resultSet.getString("mvto"));
+                reception.setTienda(resultSet.getString("tienda"));
+                reception.setRecibo(resultSet.getString("recibo"));
+                reception.setOrden(resultSet.getString("orden"));
+                reception.setAdicional(resultSet.getString("adicional"));
+                reception.setRemision(resultSet.getString("remision"));
+                reception.setFecha(resultSet.getString("fecha"));
+                reception.setValor(resultSet.getString("valor"));
+                reception.setIva(resultSet.getString("iva"));
+                reception.setNeto(resultSet.getString("neto"));
+                listReceptionResult.add(reception);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listReceptionResult = new ArrayList<Reception>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listReceptionResult;
+    }
+    
     
     public void documentTableColumns()
     {
