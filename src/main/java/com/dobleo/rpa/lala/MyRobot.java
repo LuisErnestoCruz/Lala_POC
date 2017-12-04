@@ -67,10 +67,14 @@ public class MyRobot implements IRobot {
         private int currentLinkIndex = 0;
         private DatabaseUtilities databaseUtilities;
 	private String databasePath;
-        private String excelFilePath;
+        private String currentExcelFilePath;
+        private String pastExcelFilePath;
         private String folioNumber;
-        private String fileName;
-        private static final String PARAM_INPUT_FILE = "inputFile";
+        private String pastFolioNumber;
+        private String currentfileName;
+        private String pastFileName;
+        private static final String PARAM_CURRENT_INPUT_FILE = "currentInputFile";
+        private static final String PARAM_PAST_INPUT_FILE = "pastInputFile"; 
         private static final String DATABASE_NAME = "grupolala";
         private static final String TABLE_DOCUMENTS = "documento";
         private static final String TABLE_RECEPTIONS = "recepciones";
@@ -113,8 +117,10 @@ public class MyRobot implements IRobot {
                 receptionsColumns = null;
                 salesColumns = null;
                 databasePath = "";
-                fileName = server.getParameters().get(PARAM_INPUT_FILE);
-                excelFilePath = Paths.get(server.getCurrentDir(), fileName).toString();
+                currentfileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
+                pastFileName = server.getParameters().get(PARAM_PAST_INPUT_FILE);
+                currentExcelFilePath = Paths.get(server.getCurrentDir(), currentfileName).toString();
+                pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
 	}
         
         public void createDatabase() throws Exception
@@ -158,11 +164,11 @@ public class MyRobot implements IRobot {
             ArrayList<Reception> listReception = new ArrayList<Reception>();
             ArrayList<Sale> listSale = new ArrayList<Sale>(); 
             server.info("Get input File Information");
-            String fileName = server.getParameters().get(PARAM_INPUT_FILE);
+            String fileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
             server.info("Obtain Excel File Path");
-            excelFilePath = Paths.get(server.getCurrentDir(), fileName).toString();
-            server.info("Excel File Path: " + excelFilePath);
-            FileInputStream in =new FileInputStream(new File(excelFilePath));
+            currentExcelFilePath = Paths.get(server.getCurrentDir(), fileName).toString();
+            server.info("Excel File Path: " + currentExcelFilePath);
+            FileInputStream in =new FileInputStream(new File(currentExcelFilePath));
             //Workbook book = WorkbookFactory.create(in);
             Workbook book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(in);
             String folioNumber = book.getSheetName(1);
@@ -340,16 +346,16 @@ public class MyRobot implements IRobot {
         public void readExcelFolioSheet() throws Exception
         {
             folioNumber = null;
-            fileName = null;
+            currentfileName = null;
             Document document = new Document(); 
             Workbook book = null;
             server.info("Open File Excel"); 
-            InputStream inputFile = new FileInputStream(new File(excelFilePath));
+            InputStream inputFile = new FileInputStream(new File(currentExcelFilePath));
             server.info("Get input File Information");
-            fileName = server.getParameters().get(PARAM_INPUT_FILE);
+            currentfileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
             server.info("Obtain Excel File Path");
-            excelFilePath = Paths.get(server.getCurrentDir(), fileName).toString();
-            server.info("Excel File Path: " + excelFilePath);
+            currentExcelFilePath = Paths.get(server.getCurrentDir(), currentfileName).toString();
+            server.info("Excel File Path: " + currentExcelFilePath);
             server.info("Obtain Workbook from Excel File");
             //book = WorkbookFactory.create(inputFile);
             book = StreamingReader.builder().open(inputFile);
@@ -358,7 +364,36 @@ public class MyRobot implements IRobot {
             server.info("Name of Second Sheet is: " + folioNumber);
             server.info("Set information to Document object");
             document.setNumeroFolio(folioNumber);
-            document.setNombre(fileName);
+            document.setNombre(currentfileName);
+            document.setPorcentajeIncidencia("0.05");
+            server.info("Insert into documento Table Information");
+            databaseUtilities.insertIntoDocument(server, databasePath, TABLE_DOCUMENTS, documentColumns, document);
+            server.info("Insert into documento Table was successful");
+            server.info("Close Excel File"); 
+            book.close();
+        }
+        
+        public void readExcelPastFolioSheet() throws Exception
+        {
+            pastFileName = null;
+            Document document = new Document(); 
+            Workbook book = null;
+            server.info("Open File Excel"); 
+            InputStream inputFile = new FileInputStream(new File(pastExcelFilePath));
+            server.info("Get input File Information");
+            pastFileName = server.getParameters().get(PARAM_PAST_INPUT_FILE);
+            server.info("Obtain Excel File Path");
+            pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
+            server.info("Excel File Path: " + pastExcelFilePath);
+            server.info("Obtain Workbook from Excel File");
+            //book = WorkbookFactory.create(inputFile);
+            book = StreamingReader.builder().open(inputFile);
+            server.info("Get Name from Second Sheet into Excel");
+            pastFolioNumber = book.getSheetName(1);
+            server.info("Name of Second Sheet is: " + pastFolioNumber);
+            server.info("Set information to Document object");
+            document.setNumeroFolio(pastFolioNumber);
+            document.setNombre(pastFileName);
             document.setPorcentajeIncidencia("0.05");
             server.info("Insert into documento Table Information");
             databaseUtilities.insertIntoDocument(server, databasePath, TABLE_DOCUMENTS, documentColumns, document);
@@ -390,11 +425,11 @@ public class MyRobot implements IRobot {
             DataFormatter dataFormatter = new DataFormatter();
             server.info("Set Information into document Object");
             document.setNumeroFolio(folioNumber);
-            document.setNombre(fileName);
+            document.setNombre(currentfileName);
             server.info("Obtain Id From documento Table");
             idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
             server.info("Open Excel File"); 
-            inputFile = new FileInputStream(new File(excelFilePath));
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
             server.info("Obtain Workbook from Excel File");
             //book = WorkbookFactory.create(inputFile);
             book = StreamingReader.builder().open(inputFile);
@@ -556,6 +591,129 @@ public class MyRobot implements IRobot {
             
         }
         
+        public void readExcelPastReceptionSheet() throws Exception
+        {
+            int idFolio = 0;
+            int columnNumberRow = 0;
+            int maxColumnNumberRow = 0;
+            int totalCellBlank = 0;
+            int totalColumn = 0;
+            int columnIndex = 0;
+            ArrayList<Reception> listReception = new ArrayList<Reception>(); 
+            String cellValue = null;
+            Document document = new Document();
+            Reception reception = new Reception();
+            Workbook book = null;
+            //Row row = null;
+            Sheet receptionSheet = null;
+            InputStream inputFile = null;
+            Iterator<Cell> iteratorCell = null;
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            Date date = null;
+            SimpleDateFormat dateFormat = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            server.info("Set Information into document Object");
+            document.setNumeroFolio(pastFolioNumber);
+            document.setNombre(pastFileName);
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(pastExcelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            //book = WorkbookFactory.create(inputFile);
+            book = StreamingReader.builder().open(inputFile);
+            server.info("Get Sheet from Excel File");
+            receptionSheet = book.getSheetAt(1);
+            server.info("Read All Filled Row From Sheet: " + receptionSheet.getSheetName()); 
+            server.info("Insert Data Information Into recepciones Table");
+            
+            for(Row row: receptionSheet)
+            {
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+                if(columnNumberRow > maxColumnNumberRow)
+                {
+                    maxColumnNumberRow = columnNumberRow;
+                }
+                
+                if(maxColumnNumberRow > 10)
+                {
+                    totalCellBlank = 0;
+                    iteratorCell = null;
+                    reception = null;
+                    reception = new Reception();
+                    reception.setIdFolio(idFolio);
+                    totalColumn = maxColumnNumberRow - 1;
+                    iteratorCell = row.cellIterator();
+                    
+                    for (Cell cellTemp : row) 
+                    {
+                        dataFormatter = new DataFormatter();
+                        cellValue = dataFormatter.formatCellValue(cellTemp); 
+                        if(StringUtils.isBlank(cellValue))
+                        {
+                            totalCellBlank = totalCellBlank + 1; 
+                        }
+                    }
+                    
+                    if(totalColumn == 10 && totalCellBlank < 6)
+                    {
+                        columnIndex = 0; 
+                        for(int b = 0; b < totalColumn; b++)
+                        {
+                            dataFormatter = new DataFormatter();
+                            cellValue = null;
+                            cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                            //cellValue = cell.getStringCellValue();
+                            //if(columnIndex <= 9)
+                            //{
+                                switch(b)
+                                {
+                                    case 0: if(StringUtils.isBlank(cellValue)){reception.setMtvo("");}else{reception.setMtvo(cellValue);} columnIndex++; break;
+                                    case 1: if(StringUtils.isBlank(cellValue)){reception.setTienda("");}else{reception.setTienda(cellValue);} columnIndex++; break;
+                                    case 2: if(StringUtils.isBlank(cellValue)){reception.setRecibo("");}else{reception.setRecibo(cellValue);} columnIndex++; break;
+                                    case 3: if(StringUtils.isBlank(cellValue)){reception.setOrden("");}else{reception.setOrden(cellValue);} columnIndex++; break;
+                                    case 4: if(StringUtils.isBlank(cellValue)){reception.setAdicional("");}else{reception.setAdicional(cellValue);} columnIndex++; break;
+                                    case 5: if(StringUtils.isBlank(cellValue)){reception.setRemision("");}else{reception.setRemision(cellValue);} columnIndex++; break;
+                                    case 6: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        reception.setFecha("");
+                                    }
+                                    else
+                                    {
+                                        date = row.getCell(b).getDateCellValue(); 
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        reception.setFecha(dateFormat.format(date));
+                                    }
+                                    columnIndex++;
+                                    break;
+                                    case 7: if(StringUtils.isBlank(cellValue)){reception.setValor("");}else{reception.setValor(decimalFormat.format(row.getCell(b).getNumericCellValue()));} columnIndex++; break;
+                                    case 8: if(StringUtils.isBlank(cellValue)){reception.setIva("");}else{reception.setIva(cellValue.replace("$", ""));} columnIndex++; break; 
+                                    case 9: if(StringUtils.isBlank(cellValue)){reception.setNeto("");}else{reception.setNeto(decimalFormat.format(row.getCell(b).getNumericCellValue()));} columnIndex++; break;
+                                    default: break;
+                                }
+                            //}
+                            
+                        }
+                        listReception.add(reception);
+                        //databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                    }
+                    
+                    
+                }
+            }
+            databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, listReception);
+            server.info("Insert Data Information into recepciones Table was sucessful");
+            server.info("Close Excel File"); 
+            book.close();
+            
+        }
+        
         public void readExcelSaleSheet() throws Exception
         {
             boolean checkSaleColumns = false;
@@ -576,11 +734,11 @@ public class MyRobot implements IRobot {
             ArrayList<Sale> listSale = new ArrayList<Sale>();
             server.info("Set Information into document Object");
             document.setNumeroFolio(folioNumber);
-            document.setNombre(fileName);
+            document.setNombre(currentfileName);
             server.info("Obtain Id From documento Table");
             idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
             server.info("Open Excel File"); 
-            inputFile = new FileInputStream(new File(excelFilePath));
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
             server.info("Obtain Workbook from Excel File");
             book = WorkbookFactory.create(inputFile);
             //book = StreamingReader.builder().open(inputFile);
@@ -703,9 +861,21 @@ public class MyRobot implements IRobot {
                         
                         for(int b = 0; b < maxColumnNumberRow; b++)
                         {
-                            dataFormatter = new DataFormatter();
-                            cellValue = dataFormatter.formatCellValue(row.getCell(b));
-                            server.info(cellValue); 
+                            if(row.getCell(b) != null)
+                            {
+                                if(row.getCell(b).getCellType() != CellType.BLANK || row.getCell(b).getCellTypeEnum() != CellType._NONE || row.getCell(b).getCellTypeEnum() != CellType.FORMULA)
+                                {
+                                    server.info("Tipo de Celda: " + row.getCell(b).getCellType());
+                                    dataFormatter = new DataFormatter();
+                                    cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                                    
+                                }
+                            }
+                            else 
+                            {
+                                cellValue = "";
+                            }
+                            //server.info(cellValue); 
                             //cellValue = row.getCell(b).getStringCellValue();
                             switch(b)
                             {
@@ -747,7 +917,7 @@ public class MyRobot implements IRobot {
                                 default: break;
                             }
                         }
-                        databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
+                        listSale.add(sale); 
                     }
                     else if(maxColumnNumberRow == 20 && checkSaleColumns == false)
                     {
@@ -755,6 +925,125 @@ public class MyRobot implements IRobot {
                     }
                 }
             }*/
+            databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale); 
+            server.info("Insert Data Information into ventas Table was sucessful");
+            server.info("Close Excel File");
+            book.close();
+            
+        }
+        
+        public void readExcelPastSaleSheet() throws Exception
+        {
+            boolean checkSaleColumns = false;
+            int idFolio = 0;
+            short columnNumberRow = 0;
+            short maxColumnNumberRow = 0; 
+            String cellValue = null;
+            Document document = new Document();
+            Sale sale = new Sale();
+            Workbook book = null;
+            Sheet saleSheet = null;
+            Row row = null; 
+            InputStream inputFile = null;
+            SimpleDateFormat dateFormat = null;
+            Date date = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            ArrayList<Sale> listSale = new ArrayList<Sale>();
+            server.info("Set Information into document Object");
+            document.setNumeroFolio(pastFolioNumber);
+            document.setNombre(pastFileName);
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(pastExcelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().open(inputFile);
+            server.info("Get Sheet from Excel File");
+            saleSheet = book.getSheetAt(3);
+            server.info("Read All Filled Row From Sheet: " + saleSheet.getSheetName()); 
+            server.info("Insert Data Information Into ventas Table");
+            for(int a = 0; a < saleSheet.getLastRowNum(); a++)
+            {
+                row = null;
+                row = saleSheet.getRow(a); 
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+                if(columnNumberRow > maxColumnNumberRow)
+                {
+                    maxColumnNumberRow = columnNumberRow;
+                }
+                
+                if(maxColumnNumberRow == 20)
+                {
+                    sale = null; 
+                    sale = new Sale(); 
+                    sale.setIdFolio(idFolio);
+                    
+                    if(maxColumnNumberRow == 20 && checkSaleColumns == true)
+                    {
+                        if(row != null)
+                        {
+                            if(row.getCell(0) != null)
+                            {
+                                date = row.getCell(0).getDateCellValue();
+                                if(date == null)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        for(int b = 0; b < maxColumnNumberRow; b++)
+                        {
+                            dataFormatter = new DataFormatter();
+                            cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                            switch(b)
+                            {
+                                case 0: dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                date = row.getCell(b).getDateCellValue(); 
+                                sale.setFecha(dateFormat.format(date));
+                                break;
+                                case 1: sale.setPedidoAdicional(cellValue); break;
+                                case 2: sale.setFactura(cellValue); break;
+                                case 3: sale.setFolio(cellValue); break;
+                                case 4: sale.setSolicitante(cellValue); break;
+                                case 5: sale.setCedis(cellValue); break;
+                                case 6: sale.setDestinatario(cellValue); break;
+                                case 7: sale.setNombreDestinatario(cellValue); break;
+                                case 8: sale.setFacturaRemisionSicav(cellValue); break; 
+                                case 9: if(StringUtils.isBlank(cellValue)){ sale.setImporte(null); } else { sale.setImporte(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 10: sale.setCliente(cellValue); break;
+                                case 11: sale.setRefFact(cellValue); break;
+                                case 12: sale.setReferencia(cellValue);  break;
+                                case 13: sale.setClvRef2(cellValue); break;
+                                case 14: sale.setClvRef3(cellValue); break;
+                                case 15: if(StringUtils.isBlank(cellValue)){ sale.setFechaDoc(null);} else { dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                date = row.getCell(b).getDateCellValue();
+                                sale.setFechaDoc(dateFormat.format(date));
+                                }
+                                break;
+                                case 16: sale.setVencNeto(cellValue); break;
+                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(null); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 18: sale.setCe(cellValue); break;
+                                case 19: sale.setDiv(cellValue); break;
+                                default: break;
+                            }
+                        }
+                        listSale.add(sale); 
+                        //databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
+                    }
+                    else if(maxColumnNumberRow == 20 && checkSaleColumns == false)
+                    {
+                        checkSaleColumns = true;
+                    }
+                }
+            }
             databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale); 
             server.info("Insert Data Information into ventas Table was sucessful");
             server.info("Close Excel File");
@@ -773,13 +1062,13 @@ public class MyRobot implements IRobot {
             Row rowColumn = null; 
             Document document = new Document(); 
             document.setNumeroFolio(folioNumber);
-            document.setNombre(fileName);
+            document.setNombre(currentfileName);
             Iterator<Row> iterator1 = null;
             Iterator<Row> iterator2 = null;
             server.info("Obtain Id From documento Table");
             idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
             server.info("Open Excel File"); 
-            inputFile = new FileInputStream(new File(excelFilePath));
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
             
             server.info("Obtain Workbook from Excel File");
             book = WorkbookFactory.create(inputFile);
@@ -841,7 +1130,7 @@ public class MyRobot implements IRobot {
                 }
             }
             server.info("Añadiendolos al archivo Excel");
-            FileOutputStream outputStream = new FileOutputStream(excelFilePath);
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
             book.write(outputStream);
             book.close();
             outputStream.close();
@@ -861,18 +1150,18 @@ public class MyRobot implements IRobot {
             Row rowColumn = null; 
             Document document = new Document(); 
             document.setNumeroFolio(folioNumber);
-            document.setNombre(fileName);
+            document.setNombre(currentfileName);
             server.info("Obtain Id From documento Table");
             idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
             server.info("Open Excel File"); 
-            inputFile = new FileInputStream(new File(excelFilePath));
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
             
             server.info("Obtain Workbook from Excel File");
             book = WorkbookFactory.create(inputFile);
             //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
             server.info("Create Sheet from Excel File");
-            sheet = book.createSheet("Punto 11");
-            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
+            sheet = book.createSheet("Ventas Lala Punto 11");
+            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", "Cliente", "Ref. fact.", "Referencia", "Clv. ref.2", "Clv. ref.3", "Fecha doc.", "Venc.neto", "ImpteML", "Ce", "Div"};
             int rowCount = 0; 
             int columnCount = 0;
             rowColumn = sheet.createRow(rowCount);
@@ -911,13 +1200,25 @@ public class MyRobot implements IRobot {
                         case 8: if(StringUtils.isBlank(sale.getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(sale.getFacturaRemisionSicav().substring(0, 3));} columnCount++; break;
                         case 9: if(StringUtils.isBlank(sale.getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(sale.getFacturaRemisionSicav().substring(3, sale.getFacturaRemisionSicav().length()));} columnCount++; break;
                         case 10: if(StringUtils.isBlank(sale.getImporte())){cell.setCellValue("");}else{cell.setCellValue(sale.getImporte());} columnCount++; break;
+                        case 11: if(StringUtils.isBlank(sale.getCliente())){cell.setCellValue("");}else{cell.setCellValue(sale.getCliente());} columnCount++; break;
+                        case 12: if(StringUtils.isBlank(sale.getRefFact())){cell.setCellValue("");}else{cell.setCellValue(sale.getRefFact());} columnCount++; break;
+                        case 13: if(StringUtils.isBlank(sale.getReferencia())){cell.setCellValue("");}else{cell.setCellValue(sale.getReferencia());} columnCount++; break;
+                        case 14: if(StringUtils.isBlank(sale.getClvRef2())){cell.setCellValue("");}else{cell.setCellValue(sale.getClvRef2());} columnCount++; break;
+                        case 15: if(StringUtils.isBlank(sale.getClvRef3())){cell.setCellValue("");}else{cell.setCellValue(sale.getClvRef3());} columnCount++; break;
+                        case 16: if(StringUtils.isBlank(sale.getFechaDoc())){cell.setCellValue("");}else{cell.setCellValue(sale.getFechaDoc());} columnCount++; break;
+                        case 17: if(StringUtils.isBlank(sale.getVencNeto())){cell.setCellValue("");}else{cell.setCellValue(sale.getVencNeto());} columnCount++; break;
+                        case 18: if(StringUtils.isBlank(sale.getImpteMl())){cell.setCellValue("");}else{cell.setCellValue(sale.getImpteMl());} columnCount++; break;
+                        case 19: if(StringUtils.isBlank(sale.getCe())){cell.setCellValue("");}else{cell.setCellValue(sale.getCe());} columnCount++; break;
+                        case 20: if(StringUtils.isBlank(sale.getDiv())){cell.setCellValue("");}else{cell.setCellValue(sale.getDiv());} columnCount++; break;
+                        
                         default: break; 
                     }
                 }
             }
             
-            for(Reception reception: listReception)
+            /*for(Reception reception: listReception)
             {
+                rowCount++;
                 Row row = sheet.createRow(rowCount);
                 columnCount = 0;
                 for(String columnNameValue: columnNames)
@@ -945,14 +1246,174 @@ public class MyRobot implements IRobot {
                         default: break; 
                     }
                 }
-                rowCount++;
-            }
+            }*/
             server.info("Añadiendolos al archivo Excel");
-            FileOutputStream outputStream = new FileOutputStream(excelFilePath);
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
             book.write(outputStream);
             book.close();
             outputStream.close();
             server.info("Cerrado Excel"); 
+        }
+        
+        public void processReceptionNotMatch() throws Exception
+        {
+            //int number1 = 0; 
+            //int number2 = 0;
+            int idFolio = 0; 
+            ArrayList<Sale> listSale = new ArrayList<Sale>();
+            ArrayList<Reception> listReception = new ArrayList<Reception>();
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet sheet;
+            Row rowColumn = null; 
+            Document document = new Document(); 
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(currentfileName);
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Create Sheet from Excel File");
+            sheet = book.createSheet("Ventas Oxxo Punto 11");
+            String[] columnNames = new String[]{"MVTO", "Tienda", "Recibo", "Orden", "Adicional", "Remision", "Fecha", "Valor", "Iva", "Neto"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            rowColumn = sheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
+            listReception = databaseUtilities.getReceptionsNotMatch(server, databasePath, idFolio);
+            server.info("Total de Ventas reportadas por Tienda que no tienen relacion: " + listReception.size()); 
+            //server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            server.info("Escribiendo Ventas que no tienen relacion para el Punto 11");
+            for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }
+            
+            for(Reception reception: listReception)
+            {
+                rowCount++;
+                Row row = sheet.createRow(rowCount);
+                columnCount = 0;
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: if(StringUtils.isBlank(reception.getMtvo())){cell.setCellValue("");}else{cell.setCellValue(reception.getMtvo());} columnCount++; break; 
+                        case 1: if(StringUtils.isBlank(reception.getTienda())){cell.setCellValue("");}else{cell.setCellValue(reception.getTienda());} columnCount++; break;
+                        case 2: if(StringUtils.isBlank(reception.getRecibo())){cell.setCellValue("");}else{cell.setCellValue(reception.getRecibo());} columnCount++; break;
+                        case 3: if(StringUtils.isBlank(reception.getOrden())){cell.setCellValue("");}else{cell.setCellValue(reception.getOrden());} columnCount++; break;
+                        case 4: if(StringUtils.isBlank(reception.getAdicional())){cell.setCellValue("");}else{cell.setCellValue(reception.getAdicional());} columnCount++; break;
+                        case 5: if(StringUtils.isBlank(reception.getRemision())){cell.setCellValue("");}else{cell.setCellValue(reception.getRemision());} columnCount++; break;
+                        case 6: if(StringUtils.isBlank(reception.getFecha())){cell.setCellValue("");}else{cell.setCellValue(reception.getFecha());} columnCount++; break;
+                        case 7: if(StringUtils.isBlank(reception.getValor())){cell.setCellValue("");}else{cell.setCellValue(reception.getValor());} columnCount++;; break;
+                        case 8: if(StringUtils.isBlank(reception.getIva())){cell.setCellValue("");}else{cell.setCellValue(reception.getIva());} columnCount++;; break;
+                        case 9: if(StringUtils.isBlank(reception.getNeto())){cell.setCellValue("");}else{cell.setCellValue(reception.getNeto());} columnCount++; break;
+                        default: break; 
+                    }
+                }
+            }
+            server.info("Añadiendolos al archivo Excel");
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
+            book.write(outputStream);
+            book.close();
+            outputStream.close();
+            server.info("Cerrado Excel"); 
+        }
+        
+        public void processPointTwelve() throws Exception
+        {
+            int currentIdFolio = 0; 
+            int pastIdFolio = 0; 
+            ArrayList<Link> listLink = new ArrayList<Link>();
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet sheet;
+            Row rowColumn = null; 
+            Document document = new Document(); 
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(currentfileName);
+            server.info("Obtain Current Id From documento Table");
+            currentIdFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Obtain Past Id From documento Table");
+            document = new Document();
+            document.setNumeroFolio(pastFolioNumber);
+            document.setNombre(pastFileName);
+            pastIdFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document); 
+            listLink = databaseUtilities.searchLastWeek(server, databasePath, currentIdFolio, pastIdFolio);
+            server.info("Numero de Registros para el Punto 12: " + listLink.size());
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Create Sheet from Excel File");
+            sheet = book.createSheet("Punto 12");
+            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            rowColumn = sheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
+            //server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            server.info("Escribiendo Ventas que tienen relacion con un reporte de la semana pasada para el Punto 12");
+            for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }
+           
+            for(Link link: listLink)
+            {
+                rowCount++;
+                Row row = sheet.createRow(rowCount);
+                columnCount = 0;
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: if(StringUtils.isBlank(link.getVenta().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFecha());} columnCount++; break; 
+                        case 1: if(StringUtils.isBlank(link.getVenta().getPedidoAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getPedidoAdicional());} columnCount++; break;
+                        case 2: if(StringUtils.isBlank(link.getVenta().getFactura())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFactura());} columnCount++; break;
+                        case 3: if(StringUtils.isBlank(link.getVenta().getFolio())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFolio());} columnCount++; break;
+                        case 4: if(StringUtils.isBlank(link.getVenta().getSolicitante())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getSolicitante());} columnCount++; break;
+                        case 5: if(StringUtils.isBlank(link.getVenta().getCedis())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getCedis());} columnCount++; break;
+                        case 6: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                        case 7: if(StringUtils.isBlank(link.getVenta().getNombreDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getNombreDestinatario());} columnCount++; break;
+                        case 8: if(StringUtils.isBlank(link.getAbreviacionVenta())){cell.setCellValue("");}else{cell.setCellValue(link.getAbreviacionVenta());} columnCount++; break;
+                        case 9: if(StringUtils.isBlank(link.getVenta().getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFacturaRemisionSicav());} columnCount++; break;
+                        case 10: if(StringUtils.isBlank(link.getVenta().getImporte())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getImporte());} columnCount++; break;
+                        case 11: cell.setCellValue(""); columnCount++; break;
+                        case 12: if(StringUtils.isBlank(link.getRecepcion().getAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getAdicional());} columnCount++; break;
+                        case 13: if(StringUtils.isBlank(link.getRecepcion().getTienda())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getTienda());} columnCount++; break;
+                        case 14: if(StringUtils.isBlank(link.getRecepcion().getRemision())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getRemision());} columnCount++; break;
+                        case 15: if(StringUtils.isBlank(link.getRecepcion().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getFecha());} columnCount++; break;
+                        case 16: if(StringUtils.isBlank(link.getRecepcion().getNeto())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getNeto());} columnCount++; break;
+                        case 17: cell.setCellValue(""); columnCount++; break;
+                        case 18: if(StringUtils.isBlank(link.getDiferencia())){cell.setCellValue("");}else{cell.setCellValue(link.getDiferencia());} columnCount++; break; 
+                        case 19: if(StringUtils.isBlank(link.getPorcentaje())){cell.setCellValue("");}else{cell.setCellValue(link.getPorcentaje());} columnCount++; break;
+                        case 20: cell.setCellValue(""); columnCount++; break;
+                        case 21: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                        case 22: cell.setCellValue(""); columnCount++; break;
+                        case 23: cell.setCellValue(pastFileName); columnCount++; break;
+                        default: break; 
+                    }
+                }
+            }
+            server.info("Añadiendolos al archivo Excel");
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
+            book.write(outputStream);
+            book.close();
+            outputStream.close();
+            server.info("Cerrado Excel");
         }
         
         public void processLinkIntoExcel() throws Exception
@@ -966,13 +1427,13 @@ public class MyRobot implements IRobot {
             Row rowColumn = null; 
             Document document = new Document(); 
             document.setNumeroFolio(folioNumber);
-            document.setNombre(fileName);
+            document.setNombre(currentfileName);
             Iterator<Row> iterator1 = null;
             Iterator<Row> iterator2 = null;
             server.info("Obtain Id From documento Table");
             idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
             server.info("Open Excel File"); 
-            inputFile = new FileInputStream(new File(excelFilePath));
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
             
             server.info("Obtain Workbook from Excel File");
             book = WorkbookFactory.create(inputFile);
@@ -1177,6 +1638,6 @@ public class MyRobot implements IRobot {
 	*/
         @Override
 	public String[] cleanUp() throws Exception {
-		return new String[] { excelFilePath };
+		return new String[] { currentExcelFilePath };
 	}
 }

@@ -649,7 +649,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -657,7 +657,7 @@ public class DatabaseUtilities {
             "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -738,7 +738,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -746,7 +746,7 @@ public class DatabaseUtilities {
             "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -768,7 +768,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -776,7 +776,7 @@ public class DatabaseUtilities {
             "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -798,7 +798,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -806,7 +806,7 @@ public class DatabaseUtilities {
             "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -890,7 +890,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -899,7 +899,7 @@ public class DatabaseUtilities {
             "recepciones.id AS idRecepcion, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -921,7 +921,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -930,7 +930,7 @@ public class DatabaseUtilities {
             "recepciones.id AS idRecepcion, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -952,7 +952,7 @@ public class DatabaseUtilities {
             "ventas.cedis AS ventas_cedis, " +
             "ventas.destinatario AS ventas_destinatario, " +
             "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
             "SUBSTR(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
             "SUBSTR(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
             "ventas.importe AS ventas_importe, " +
@@ -961,7 +961,7 @@ public class DatabaseUtilities {
             "recepciones.id AS idRecepcion, " +
             "recepciones.adicional AS recepciones_adicional, " +
             "recepciones.tienda AS recepciones_tienda, " +
-            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "SUBSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, LENGTH(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
             "recepciones.remision AS recepciones_remision, " +
             "recepciones.fecha AS recepciones_fecha, " +
             "recepciones.valor AS recepciones_valor, " +
@@ -1013,6 +1013,295 @@ public class DatabaseUtilities {
             server.error(sw.toString());
         }
         return listReceptionResult;
+    }
+    
+    public ArrayList<Link> searchLastWeek(IJidokaServer<?> server, String url, int currentIdFolio, int pastIdFolio)
+    {
+        ArrayList<Link> listResult = new ArrayList<Link>(); 
+        try
+        {
+            int index = 0; 
+            int times = 0; 
+            Reception reception = new Reception();
+            Sale sale = new Sale();
+            Link link = new Link();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = null;
+            String sqlSubQuery1 = null; 
+            String sqlSubQuery2 = null;
+            sqlQuery = "";
+            sqlSubQuery1 = "SELECT ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, recepciones_adicional, recepciones_tienda, recepciones_remision, recepciones_fecha, recepciones_neto, ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje  FROM("; 
+            sqlSubQuery1 += "SELECT * FROM (SELECT ventas_id, ventas_idFolio, ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_nombre_destinatario2, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, (ventas_importe - ROUND(ventas_importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, (ventas_importe + ROUND(ventas_importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3 FROM (SELECT ventas.id AS ventas_id, ventas.idFolio AS ventas_idFolio, ventas.fecha AS ventas_fecha, ventas.pedido_adicional AS ventas_pedido_adicional, ventas.factura AS ventas_factura, ventas.folio AS ventas_folio, ventas.solicitante AS ventas_solicitante, ventas.cedis AS ventas_cedis, ventas.destinatario AS ventas_destinatario, ventas.nombre_destinatario AS ventas_nombre_destinatario, substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, substr(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, substr(ventas.factura_remisionSicav, 4, length(ventas.factura_remisionSicav)) AS ventas_remisionSicav, ventas.importe AS ventas_importe FROM ventas WHERE idFolio = ? AND id NOT IN(SELECT idVenta FROM (SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones_remision <> ventas_remisionSicav) AND (recepciones_adicional <> ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)) " +
+            "GROUP BY idVenta " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
+            "GROUP BY idVenta " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ' '), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "GROUP BY idVenta " +
+            "ORDER BY ventas_destinatario) " +
+            "ORDER BY idVenta) " +
+            ") " +
+            "JOIN documento ON documento.id = ventas_idFolio)";
+            sqlQuery += sqlSubQuery1; 
+            sqlQuery += "CROSS JOIN";
+            
+            index = sqlSubQuery1.indexOf("?");
+            while(index >= 0) {
+                index = sqlSubQuery1.indexOf("?", index+1);
+                times++;
+            }
+            
+            
+            sqlSubQuery2 = "(SELECT recepciones_adicional, recepciones_tienda, recepciones_tienda2, recepciones_remision, recepciones_fecha, recepciones_valor, recepciones_neto FROM (SELECT recepciones.idFolio AS idFolio, recepciones.adicional AS recepciones_adicional, recepciones.tienda AS recepciones_tienda, substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, recepciones.remision AS recepciones_remision, recepciones.fecha AS recepciones_fecha, recepciones.valor AS recepciones_valor, recepciones.neto AS recepciones_neto  FROM recepciones WHERE idFolio = ? AND id NOT IN(SELECT idRecepcion FROM (SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_remision <> ventas_remisionSicav) AND (recepciones_adicional <> ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)) " +
+            "GROUP BY idRecepcion " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM ventas JOIN recepciones ON recepciones.idFolio = ventas.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
+            "GROUP BY idRecepcion " +
+            "UNION " +
+            "SELECT " +
+            "ventas.id AS idVenta, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(ventas.nombre_destinatario), ' ', ''), ',', ''), '.', ''))) AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "substr(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''), INSTR(REPLACE(LOWER(recepciones.tienda), ' ', ''), '-')+1, length(REPLACE(REPLACE(REPLACE(LOWER(recepciones.tienda), ' ', ''), ',', ''), '.', ''))) AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE (recepciones.idFolio = ?) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "GROUP BY idRecepcion " +
+            "ORDER BY ventas_destinatario) " +
+            "ORDER BY idRecepcion) " +
+            ") " +
+            "JOIN documento ON documento.id = idFolio)";
+            
+            index = sqlSubQuery2.indexOf("?");
+            while(index >= 0) {
+                index = sqlSubQuery2.indexOf("?", index+1);
+                times++;
+            }
+            
+            sqlQuery += sqlSubQuery2;
+            sqlQuery += "WHERE (ventas_remisionSicav = recepciones_remision) OR (ventas_pedido_adicional = recepciones_adicional) OR ((ventas_nombre_destinatario2 = recepciones_tienda2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) " +
+            "GROUP BY ventas_id " +
+            "ORDER BY ventas_destinatario);";
+            
+            
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            for(int a = 1; a <= times; a++)
+            {
+                if(a > 0 && a <= 4)
+                {
+                    preparedStatement.setInt(a, currentIdFolio);
+                }
+                else if(a > 4 && a <= 8)
+                {
+                    preparedStatement.setInt(a, pastIdFolio);
+                }
+            }
+            
+            ResultSet resultSet = preparedStatement.executeQuery();
+           
+            while(resultSet.next())
+            {
+                link = new Link(); 
+                reception = new Reception();
+                sale = new Sale();
+                sale.setFecha(resultSet.getString("ventas_fecha"));
+                sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
+                sale.setFactura(resultSet.getString("ventas_factura"));
+                sale.setFolio(resultSet.getString("ventas_folio"));
+                sale.setSolicitante(resultSet.getString("ventas_solicitante"));
+                sale.setCedis(resultSet.getString("ventas_cedis"));
+                sale.setDestinatario(resultSet.getString("ventas_destinatario"));
+                sale.setNombreDestinatario(resultSet.getString("ventas_nombre_destinatario"));
+                sale.setFacturaRemisionSicav(resultSet.getString("ventas_remisionSicav"));
+                sale.setImporte(resultSet.getString("ventas_importe"));
+                reception.setAdicional(resultSet.getString("recepciones_adicional"));
+                reception.setTienda(resultSet.getString("recepciones_tienda"));
+                reception.setRemision(resultSet.getString("recepciones_remision"));
+                reception.setFecha(resultSet.getString("recepciones_fecha"));
+                reception.setNeto(resultSet.getString("recepciones_neto"));
+                link.setAbreviacionVenta(resultSet.getString("ventas_abreviacion_factura"));
+                link.setDiferencia(resultSet.getString("amarre_diferencia"));
+                link.setPorcentaje(resultSet.getString("amarre_porcentaje"));
+                link.setBusqueda("Folio Semana Pasada");
+                link.setRecepcion(reception);
+                link.setVenta(sale);
+                listResult.add(link);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listResult = new ArrayList<Link>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listResult;
     }
     
     
