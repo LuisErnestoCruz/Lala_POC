@@ -20,6 +20,7 @@ public class Sale {
     private String cedis; 
     private String destinatario;
     private String nombreDestinatario;
+    private String nombreDestinatario2;
     private String facturaRemisionSicav;
     private String importe;
     private String cliente;
@@ -111,6 +112,14 @@ public class Sale {
 
     public void setNombreDestinatario(String nombreDestinatario) {
         this.nombreDestinatario = nombreDestinatario;
+    }
+
+    public String getNombreDestinatario2() {
+        return nombreDestinatario2;
+    }
+
+    public void setNombreDestinatario2(String nombreDestinatario2) {
+        this.nombreDestinatario2 = nombreDestinatario2;
     }
 
     public String getFacturaRemisionSicav() {

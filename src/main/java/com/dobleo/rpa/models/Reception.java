@@ -13,7 +13,8 @@ public class Reception {
     private int id; 
     private int idFolio;
     private String mtvo;
-    private String tienda; 
+    private String tienda;
+    private String tienda2;
     private String recibo;
     private String orden; 
     private String adicional; 
@@ -53,6 +54,14 @@ public class Reception {
 
     public void setTienda(String tienda) {
         this.tienda = tienda;
+    }
+
+    public String getTienda2() {
+        return tienda2;
+    }
+
+    public void setTienda2(String tienda2) {
+        this.tienda2 = tienda2;
     }
 
     public String getRecibo() {
