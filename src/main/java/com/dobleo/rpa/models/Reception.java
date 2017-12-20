@@ -20,6 +20,7 @@ public class Reception {
     private String adicional; 
     private String remision; 
     private String fecha;
+    private String fecha2;
     private String valor; 
     private String iva; 
     private String neto;
@@ -102,6 +103,14 @@ public class Reception {
 
     public void setFecha(String fecha) {
         this.fecha = fecha;
+    }
+
+    public String getFecha2() {
+        return fecha2;
+    }
+
+    public void setFecha2(String fecha2) {
+        this.fecha2 = fecha2;
     }
 
     public String getValor() {

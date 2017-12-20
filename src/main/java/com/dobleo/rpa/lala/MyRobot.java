@@ -35,6 +35,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.monitorjbl.xlsx.StreamingReader;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.HashSet;
 import org.apache.poi.ss.usermodel.CellType;
 
 /**
@@ -77,9 +78,11 @@ public class MyRobot implements IRobot {
         private String currentfileName;
         private String pastFileName;
         private String laterFileName;
-        private static final String PARAM_CURRENT_INPUT_FILE = "currentInputFile";
-        private static final String PARAM_PAST_INPUT_FILE = "pastInputFile"; 
-        private static final String PARAM_LATER_INPUT_FILE = "laterInputFile";
+        private String incidencePercentage;
+        private static final String PARAM_CURRENT_INPUT_FILE = "folioBase";
+        private static final String PARAM_PAST_INPUT_FILE = "folioAnterior"; 
+        private static final String PARAM_LATER_INPUT_FILE = "folioPosterior";
+        private static final String PARAM_INCIDENCE_PERCENTAGE = "porcentajeIncidencia" ;
         private static final String DATABASE_NAME = "grupolala";
         private static final String TABLE_DOCUMENTS = "documento";
         private static final String TABLE_RECEPTIONS = "recepciones";
@@ -91,7 +94,9 @@ public class MyRobot implements IRobot {
         private Map<Integer, String> virtualReceptionsColumns;
         private Map<Integer, String> virtualSalesColumns;
         private Map<Integer, String> salesColumns;
-        private ArrayList<Link> listTenPoint; 
+        private ArrayList<Link> listTenPoint;
+        private ArrayList<Integer> listIdReceptionNotMatch;
+        private ArrayList<Integer> listRemoveIdReceptionNotMatch;
 	/**
 	 * Action "start"
 	 * @return
@@ -128,11 +133,14 @@ public class MyRobot implements IRobot {
                 virtualSalesColumns = null;
                 salesColumns = null;
                 databasePath = "";
+                listIdReceptionNotMatch = new ArrayList<Integer>();
+                listRemoveIdReceptionNotMatch = new ArrayList<Integer>();
                 currentfileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
                 pastFileName = server.getParameters().get(PARAM_PAST_INPUT_FILE);
                 laterFileName = server.getParameters().get(PARAM_LATER_INPUT_FILE);
                 currentExcelFilePath = Paths.get(server.getCurrentDir(), currentfileName).toString();
                 pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
+                incidencePercentage = server.getParameters().get(PARAM_INCIDENCE_PERCENTAGE);
                 if(laterFileName != null)
                 {
                     if(StringUtils.isBlank(laterFileName) == false && StringUtils.isEmpty(laterFileName) == false)
@@ -373,6 +381,9 @@ public class MyRobot implements IRobot {
         
         public void readExcelFolioSheet() throws Exception
         {
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            double percentage = 0.0;
+            double operation = 0.0;
             folioNumber = null;
             currentfileName = null;
             Document document = new Document(); 
@@ -393,7 +404,25 @@ public class MyRobot implements IRobot {
             server.info("Set information to Document object");
             document.setNumeroFolio(folioNumber);
             document.setNombre(currentfileName);
-            document.setPorcentajeIncidencia("0.05");
+            //document.setPorcentajeIncidencia("0.05");
+            if(incidencePercentage != null)
+            {
+                if(StringUtils.isBlank(incidencePercentage) == false && StringUtils.isEmpty(incidencePercentage) == false)
+                {
+                    percentage = Double.parseDouble(incidencePercentage);
+                    operation = percentage / (double)100;
+                    document.setPorcentajeIncidencia(decimalFormat.format(operation));
+                }
+                else
+                {
+                    document.setPorcentajeIncidencia("0.05");
+                }
+            }
+            else 
+            {
+                document.setPorcentajeIncidencia("0.05");
+            }
+            
             server.info("Insert into documento Table Information");
             databaseUtilities.insertIntoDocument(server, databasePath, TABLE_DOCUMENTS, documentColumns, document);
             server.info("Insert into documento Table was successful");
@@ -403,6 +432,9 @@ public class MyRobot implements IRobot {
         
         public void readExcelPastFolioSheet() throws Exception
         {
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            double percentage = 0.0;
+            double operation = 0.0;
             pastFileName = null;
             Document document = new Document(); 
             Workbook book = null;
@@ -422,7 +454,23 @@ public class MyRobot implements IRobot {
             server.info("Set information to Document object");
             document.setNumeroFolio(pastFolioNumber);
             document.setNombre(pastFileName);
-            document.setPorcentajeIncidencia("0.05");
+            if(incidencePercentage != null)
+            {
+                if(StringUtils.isBlank(incidencePercentage) == false && StringUtils.isEmpty(incidencePercentage) == false)
+                {
+                    percentage = Double.parseDouble(incidencePercentage);
+                    operation = percentage / (double)100;
+                    document.setPorcentajeIncidencia(decimalFormat.format(operation));
+                }
+                else 
+                {
+                    document.setPorcentajeIncidencia("0.05");
+                }
+            }
+            else
+            {
+                document.setPorcentajeIncidencia("0.05");
+            }
             server.info("Insert into documento Table Information");
             databaseUtilities.insertIntoDocument(server, databasePath, TABLE_DOCUMENTS, documentColumns, document);
             server.info("Insert into documento Table was successful");
@@ -432,6 +480,9 @@ public class MyRobot implements IRobot {
         
         public void readExcelLaterFolioSheet() throws Exception
         {
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
+            double percentage = 0.0;
+            double operation = 0.0;
             laterFileName = null;
             Document document = new Document(); 
             Workbook book = null;
@@ -451,7 +502,23 @@ public class MyRobot implements IRobot {
             server.info("Set information to Document object");
             document.setNumeroFolio(laterFolioNumber);
             document.setNombre(laterFileName);
-            document.setPorcentajeIncidencia("0.05");
+            if(incidencePercentage != null)
+            {
+                if(StringUtils.isBlank(incidencePercentage) == false && StringUtils.isEmpty(incidencePercentage) == false)
+                {
+                    percentage = Double.parseDouble(incidencePercentage);
+                    operation = percentage / (double)100;
+                    document.setPorcentajeIncidencia(decimalFormat.format(operation));
+                }
+                else
+                {
+                    document.setPorcentajeIncidencia("0.05");
+                }
+            }
+            else 
+            {
+                document.setPorcentajeIncidencia("0.05");
+            }
             server.info("Insert into documento Table Information");
             databaseUtilities.insertIntoDocument(server, databasePath, TABLE_DOCUMENTS, documentColumns, document);
             server.info("Insert into documento Table was successful");
@@ -635,12 +702,15 @@ public class MyRobot implements IRobot {
                                     if(StringUtils.isBlank(cellValue))
                                     {
                                         reception.setFecha("");
+                                        reception.setFecha2("");
                                     }
                                     else
                                     {
                                         date = row.getCell(b).getDateCellValue(); 
                                         dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                                         reception.setFecha(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        reception.setFecha2(dateFormat.format(date));
                                     }
                                     columnIndex++;
                                     break;
@@ -778,12 +848,15 @@ public class MyRobot implements IRobot {
                                     if(StringUtils.isBlank(cellValue))
                                     {
                                         reception.setFecha("");
+                                        reception.setFecha2("");
                                     }
                                     else
                                     {
                                         date = row.getCell(b).getDateCellValue(); 
                                         dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                                         reception.setFecha(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        reception.setFecha2(dateFormat.format(date));
                                     }
                                     columnIndex++;
                                     break;
@@ -921,12 +994,15 @@ public class MyRobot implements IRobot {
                                     if(StringUtils.isBlank(cellValue))
                                     {
                                         reception.setFecha("");
+                                        reception.setFecha2("");
                                     }
                                     else
                                     {
                                         date = row.getCell(b).getDateCellValue(); 
                                         dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                                         reception.setFecha(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        reception.setFecha2(dateFormat.format(date));
                                     }
                                     columnIndex++;
                                     break;
@@ -1073,49 +1149,83 @@ public class MyRobot implements IRobot {
                             switch(b)
                             {
                                 case 0: 
-                                if(StringUtils.isBlank(cellValue))
-                                {
-                                    sale.setFecha("");
-                                }
-                                else
-                                {
-                                    dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                                    date = row.getCell(b).getDateCellValue(); 
-                                    sale.setFecha(dateFormat.format(date));
-                                }
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setFecha("");
+                                    }
+                                    else
+                                    {
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        date = row.getCell(b).getDateCellValue(); 
+                                        sale.setFecha(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setFecha2(dateFormat.format(date));
+                                    }
                                 break;
-                                case 1: sale.setPedidoAdicional(cellValue); break;
-                                case 2: sale.setFactura(cellValue); break;
-                                case 3: sale.setFolio(cellValue); break;
-                                case 4: sale.setSolicitante(cellValue); break;
-                                case 5: sale.setCedis(cellValue); break;
-                                case 6: sale.setDestinatario(cellValue); break;
+                                case 1: if(StringUtils.isBlank(cellValue)){sale.setPedidoAdicional("");}else{sale.setPedidoAdicional(cellValue);} break;
+                                case 2: if(StringUtils.isBlank(cellValue)){sale.setFactura("");}else{sale.setFactura(cellValue);} break;
+                                case 3: if(StringUtils.isBlank(cellValue)){sale.setFolio("");}else{sale.setFolio(cellValue);} break;
+                                case 4: if(StringUtils.isBlank(cellValue)){sale.setSolicitante("");}else{sale.setSolicitante(cellValue);} break;
+                                case 5: if(StringUtils.isBlank(cellValue)){sale.setCedis("");}else{sale.setCedis(cellValue);} break;
+                                case 6: if(StringUtils.isBlank(cellValue)){sale.setDestinatario("");}else{sale.setDestinatario(cellValue);} break;
                                 case 7: 
-                                    sale.setNombreDestinatario(cellValue); 
-                                    nombreDestinatario2 = ""; 
-                                    nombreDestinatario2 = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
-                                    nombreDestinatario2 = nombreDestinatario2.replace(" ", "");
-                                    nombreDestinatario2 = StringUtils.stripAccents(nombreDestinatario2); 
-                                    nombreDestinatario2 = nombreDestinatario2.replaceAll("[^a-zA-Z0-9]+", "");
-                                    nombreDestinatario2 = nombreDestinatario2.toLowerCase();
-                                    sale.setNombreDestinatario2(nombreDestinatario2);
-                                    break;
-                                case 8: sale.setFacturaRemisionSicav(cellValue); break; 
-                                case 9: if(StringUtils.isBlank(cellValue)){ sale.setImporte(""); } else { sale.setImporte(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
-                                case 10: sale.setCliente(cellValue); break;
-                                case 11: sale.setRefFact(cellValue); break;
-                                case 12: sale.setReferencia(cellValue);  break;
-                                case 13: sale.setClvRef2(cellValue); break;
-                                case 14: sale.setClvRef3(cellValue); break;
-                                case 15: if(StringUtils.isBlank(cellValue)){ sale.setFechaDoc("");} else { dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                                date = row.getCell(b).getDateCellValue();
-                                sale.setFechaDoc(dateFormat.format(date));
-                                }
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setNombreDestinatario("");
+                                        sale.setNombreDestinatario2("");
+                                    }
+                                    else
+                                    {
+                                        sale.setNombreDestinatario(cellValue); 
+                                        nombreDestinatario2 = ""; 
+                                        nombreDestinatario2 = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
+                                        nombreDestinatario2 = nombreDestinatario2.replace(" ", "");
+                                        nombreDestinatario2 = StringUtils.stripAccents(nombreDestinatario2); 
+                                        nombreDestinatario2 = nombreDestinatario2.replaceAll("[^a-zA-Z0-9]+", "");
+                                        nombreDestinatario2 = nombreDestinatario2.toLowerCase();
+                                        sale.setNombreDestinatario2(nombreDestinatario2);
+                                    }
                                 break;
-                                case 16: sale.setVencNeto(cellValue); break;
-                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(null); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
-                                case 18: sale.setCe(cellValue); break;
-                                case 19: sale.setDiv(cellValue); break;
+                                case 8: if(StringUtils.isBlank(cellValue)){sale.setFacturaRemisionSicav("");}else{sale.setFacturaRemisionSicav(cellValue);} break; 
+                                case 9: if(StringUtils.isBlank(cellValue)){ sale.setImporte(""); } else { sale.setImporte(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 10: if(StringUtils.isBlank(cellValue)){sale.setCliente("");}else{sale.setCliente(cellValue);} break;
+                                case 11: if(StringUtils.isBlank(cellValue)){sale.setRefFact("");}else{sale.setRefFact(cellValue);} break;
+                                case 12: if(StringUtils.isBlank(cellValue)){sale.setReferencia("");}else{sale.setReferencia(cellValue);}  break;
+                                case 13: if(StringUtils.isBlank(cellValue)){sale.setClvRef2("");}else{sale.setClvRef2(cellValue);} break;
+                                case 14: if(StringUtils.isBlank(cellValue)){sale.setClvRef3("");}else{sale.setClvRef3(cellValue);} break;
+                                case 15: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    { 
+                                        sale.setFechaDoc("");
+                                        sale.setFechaDoc2("");
+                                    } 
+                                    else 
+                                    { 
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        date = row.getCell(b).getDateCellValue();
+                                        sale.setFechaDoc(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setFechaDoc2(dateFormat.format(date));
+                                    }
+                                    break;
+                                case 16: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setVencNeto("");
+                                        sale.setVencNeto2("");
+                                    }
+                                    else
+                                    {
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy"); 
+                                        date = row.getCell(b).getDateCellValue();
+                                        sale.setVencNeto(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setVencNeto2(dateFormat.format(date));
+                                    } 
+                                    break;
+                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(""); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 18: if(StringUtils.isBlank(cellValue)){sale.setCe("");}else{sale.setCe(cellValue);} break;
+                                case 19: if(StringUtils.isBlank(cellValue)){sale.setDiv("");}else{sale.setDiv(cellValue);} break;
                                 default: break;
                             }
                         }
@@ -1346,51 +1456,85 @@ public class MyRobot implements IRobot {
                                 if(StringUtils.isBlank(cellValue))
                                 {
                                     sale.setFecha("");
+                                    sale.setFecha2("");
                                 }
                                 else
                                 {
                                     dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                                     date = row.getCell(b).getDateCellValue(); 
                                     sale.setFecha(dateFormat.format(date));
+                                    dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    sale.setFecha2(dateFormat.format(date));
                                 }
                                 break;
-                                case 1: sale.setPedidoAdicional(cellValue); break;
-                                case 2: sale.setFactura(cellValue); break;
-                                case 3: sale.setFolio(cellValue); break;
-                                case 4: sale.setSolicitante(cellValue); break;
-                                case 5: sale.setCedis(cellValue); break;
-                                case 6: sale.setDestinatario(cellValue); break;
+                                case 1: if(StringUtils.isBlank(cellValue)){sale.setPedidoAdicional("");}else{sale.setPedidoAdicional(cellValue);} break;
+                                case 2: if(StringUtils.isBlank(cellValue)){sale.setFactura("");}else{sale.setFactura(cellValue);} break;
+                                case 3: if(StringUtils.isBlank(cellValue)){sale.setFolio("");}else{sale.setFolio(cellValue);} break;
+                                case 4: if(StringUtils.isBlank(cellValue)){sale.setSolicitante("");}else{sale.setSolicitante(cellValue);} break;
+                                case 5: if(StringUtils.isBlank(cellValue)){sale.setCedis("");}else{sale.setCedis(cellValue);} break;
+                                case 6: if(StringUtils.isBlank(cellValue)){sale.setDestinatario("");}else{sale.setDestinatario(cellValue);} break;
                                 case 7: 
-                                    sale.setNombreDestinatario(cellValue); 
-                                    nombreDestinatario2 = ""; 
-                                    nombreDestinatario2 = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
-                                    nombreDestinatario2 = nombreDestinatario2.replace(" ", "");
-                                    nombreDestinatario2 = StringUtils.stripAccents(nombreDestinatario2); 
-                                    nombreDestinatario2 = nombreDestinatario2.replaceAll("[^a-zA-Z0-9]+", "");
-                                    nombreDestinatario2 = nombreDestinatario2.toLowerCase();
-                                    sale.setNombreDestinatario2(nombreDestinatario2);
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setNombreDestinatario("");
+                                        sale.setNombreDestinatario2("");
+                                    }
+                                    else
+                                    {
+                                        sale.setNombreDestinatario(cellValue); 
+                                        nombreDestinatario2 = ""; 
+                                        nombreDestinatario2 = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
+                                        nombreDestinatario2 = nombreDestinatario2.replace(" ", "");
+                                        nombreDestinatario2 = StringUtils.stripAccents(nombreDestinatario2); 
+                                        nombreDestinatario2 = nombreDestinatario2.replaceAll("[^a-zA-Z0-9]+", "");
+                                        nombreDestinatario2 = nombreDestinatario2.toLowerCase();
+                                        sale.setNombreDestinatario2(nombreDestinatario2);
+                                    }
                                 break;
-                                case 8: sale.setFacturaRemisionSicav(cellValue); break; 
+                                case 8: if(StringUtils.isBlank(cellValue)){sale.setFacturaRemisionSicav("");}else{sale.setFacturaRemisionSicav(cellValue);} break; 
                                 case 9: if(StringUtils.isBlank(cellValue)){ sale.setImporte(""); } else { sale.setImporte(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
-                                case 10: sale.setCliente(cellValue); break;
-                                case 11: sale.setRefFact(cellValue); break;
-                                case 12: sale.setReferencia(cellValue);  break;
-                                case 13: sale.setClvRef2(cellValue); break;
-                                case 14: sale.setClvRef3(cellValue); break;
-                                case 15: if(StringUtils.isBlank(cellValue)){ sale.setFechaDoc("");} else { dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                                date = row.getCell(b).getDateCellValue();
-                                sale.setFechaDoc(dateFormat.format(date));
-                                }
+                                case 10: if(StringUtils.isBlank(cellValue)){sale.setCliente("");}else{sale.setCliente(cellValue);} break;
+                                case 11: if(StringUtils.isBlank(cellValue)){sale.setRefFact("");}else{sale.setRefFact(cellValue);} break;
+                                case 12: if(StringUtils.isBlank(cellValue)){sale.setReferencia("");}else{sale.setReferencia(cellValue);}  break;
+                                case 13: if(StringUtils.isBlank(cellValue)){sale.setClvRef2("");}else{sale.setClvRef2(cellValue);} break;
+                                case 14: if(StringUtils.isBlank(cellValue)){sale.setClvRef3("");}else{sale.setClvRef3(cellValue);} break;
+                                case 15: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    { 
+                                        sale.setFechaDoc("");
+                                        sale.setFechaDoc2("");
+                                    } 
+                                    else 
+                                    { 
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        date = row.getCell(b).getDateCellValue();
+                                        sale.setFechaDoc(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setFechaDoc2(dateFormat.format(date));
+                                    }
                                 break;
-                                case 16: sale.setVencNeto(cellValue); break;
-                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(null); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
-                                case 18: sale.setCe(cellValue); break;
-                                case 19: sale.setDiv(cellValue); break;
+                                case 16: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setVencNeto("");
+                                        sale.setVencNeto2("");
+                                    }
+                                    else
+                                    {
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        date = row.getCell(b).getDateCellValue();
+                                        sale.setVencNeto(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setVencNeto2(dateFormat.format(date));
+                                    }
+                                    break;
+                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(""); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 18: if(StringUtils.isBlank(cellValue)){sale.setCe("");}else{sale.setCe(cellValue);} break;
+                                case 19: if(StringUtils.isBlank(cellValue)){sale.setDiv("");}else{sale.setDiv(cellValue);} break;
                                 default: break;
                             }
                         }
-                        listSale.add(sale); 
-                        //databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
+                        listSale.add(sale);  
                     }
                     else if(maxColumnNumberRow == 20 && checkSaleColumns == false)
                     {
@@ -1517,51 +1661,85 @@ public class MyRobot implements IRobot {
                                 if(StringUtils.isBlank(cellValue))
                                 {
                                     sale.setFecha("");
+                                    sale.setFecha2("");
                                 }
                                 else
                                 {
                                     dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                                     date = row.getCell(b).getDateCellValue(); 
                                     sale.setFecha(dateFormat.format(date));
+                                    dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    sale.setFecha2(dateFormat.format(date));
                                 }
                                 break;
-                                case 1: sale.setPedidoAdicional(cellValue); break;
-                                case 2: sale.setFactura(cellValue); break;
-                                case 3: sale.setFolio(cellValue); break;
-                                case 4: sale.setSolicitante(cellValue); break;
-                                case 5: sale.setCedis(cellValue); break;
-                                case 6: sale.setDestinatario(cellValue); break;
-                                case 7: 
-                                    sale.setNombreDestinatario(cellValue); 
-                                    nombreDestinatario2 = ""; 
-                                    nombreDestinatario2 = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
-                                    nombreDestinatario2 = nombreDestinatario2.replace(" ", "");
-                                    nombreDestinatario2 = StringUtils.stripAccents(nombreDestinatario2); 
-                                    nombreDestinatario2 = nombreDestinatario2.replaceAll("[^a-zA-Z0-9]+", "");
-                                    nombreDestinatario2 = nombreDestinatario2.toLowerCase();
-                                    sale.setNombreDestinatario2(nombreDestinatario2);
+                                case 1: if(StringUtils.isBlank(cellValue)){sale.setPedidoAdicional("");}else{sale.setPedidoAdicional(cellValue);} break;
+                                case 2: if(StringUtils.isBlank(cellValue)){sale.setFactura("");}else{sale.setFactura(cellValue);} break;
+                                case 3: if(StringUtils.isBlank(cellValue)){sale.setFolio("");}else{sale.setFolio(cellValue);} break;
+                                case 4: if(StringUtils.isBlank(cellValue)){sale.setSolicitante("");}else{sale.setSolicitante(cellValue);} break;
+                                case 5: if(StringUtils.isBlank(cellValue)){sale.setCedis("");}else{sale.setCedis(cellValue);} break;
+                                case 6: if(StringUtils.isBlank(cellValue)){sale.setDestinatario("");}else{sale.setDestinatario(cellValue);} break;
+                                case 7:
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setNombreDestinatario("");
+                                        sale.setNombreDestinatario2("");
+                                    }
+                                    else
+                                    {
+                                        sale.setNombreDestinatario(cellValue); 
+                                        nombreDestinatario2 = ""; 
+                                        nombreDestinatario2 = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
+                                        nombreDestinatario2 = nombreDestinatario2.replace(" ", "");
+                                        nombreDestinatario2 = StringUtils.stripAccents(nombreDestinatario2); 
+                                        nombreDestinatario2 = nombreDestinatario2.replaceAll("[^a-zA-Z0-9]+", "");
+                                        nombreDestinatario2 = nombreDestinatario2.toLowerCase();
+                                        sale.setNombreDestinatario2(nombreDestinatario2);
+                                    }
                                 break;
-                                case 8: sale.setFacturaRemisionSicav(cellValue); break; 
+                                case 8: if(StringUtils.isBlank(cellValue)){sale.setFacturaRemisionSicav("");}else{sale.setFacturaRemisionSicav(cellValue);} break; 
                                 case 9: if(StringUtils.isBlank(cellValue)){ sale.setImporte(""); } else { sale.setImporte(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
-                                case 10: sale.setCliente(cellValue); break;
-                                case 11: sale.setRefFact(cellValue); break;
-                                case 12: sale.setReferencia(cellValue);  break;
-                                case 13: sale.setClvRef2(cellValue); break;
-                                case 14: sale.setClvRef3(cellValue); break;
-                                case 15: if(StringUtils.isBlank(cellValue)){ sale.setFechaDoc("");} else { dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                                date = row.getCell(b).getDateCellValue();
-                                sale.setFechaDoc(dateFormat.format(date));
-                                }
+                                case 10: if(StringUtils.isBlank(cellValue)){sale.setCliente("");}else{sale.setCliente(cellValue);} break;
+                                case 11: if(StringUtils.isBlank(cellValue)){sale.setRefFact("");}else{sale.setRefFact(cellValue);} break;
+                                case 12: if(StringUtils.isBlank(cellValue)){sale.setReferencia("");}else{sale.setReferencia(cellValue);}  break;
+                                case 13: if(StringUtils.isBlank(cellValue)){sale.setClvRef2("");}else{sale.setClvRef2(cellValue);} break;
+                                case 14: if(StringUtils.isBlank(cellValue)){sale.setClvRef3("");}else{sale.setClvRef3(cellValue);} break;
+                                case 15: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    { 
+                                        sale.setFechaDoc("");
+                                        sale.setFechaDoc2("");
+                                    } 
+                                    else 
+                                    { 
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        date = row.getCell(b).getDateCellValue();
+                                        sale.setFechaDoc(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setFechaDoc2(dateFormat.format(date));
+                                    }
                                 break;
-                                case 16: sale.setVencNeto(cellValue); break;
-                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(null); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
-                                case 18: sale.setCe(cellValue); break;
-                                case 19: sale.setDiv(cellValue); break;
+                                case 16: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        sale.setVencNeto("");
+                                        sale.setVencNeto2("");
+                                    }
+                                    else
+                                    {
+                                        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                        date = row.getCell(b).getDateCellValue();
+                                        sale.setVencNeto(dateFormat.format(date));
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        sale.setVencNeto2(dateFormat.format(date));
+                                    } 
+                                    break;
+                                case 17: if(StringUtils.isBlank(cellValue)) { sale.setImpteMl(""); } else { sale.setImpteMl(decimalFormat.format(row.getCell(b).getNumericCellValue())); } break;
+                                case 18: if(StringUtils.isBlank(cellValue)){sale.setCe("");}else{sale.setCe(cellValue);} break;
+                                case 19: if(StringUtils.isBlank(cellValue)){sale.setDiv("");}else{sale.setDiv(cellValue);} break;
                                 default: break;
                             }
                         }
                         listSale.add(sale); 
-                        //databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, sale); 
                     }
                     else if(maxColumnNumberRow == 20 && checkSaleColumns == false)
                     {
@@ -1826,6 +2004,7 @@ public class MyRobot implements IRobot {
                 rowCount++;
                 Row row = sheet.createRow(rowCount);
                 columnCount = 0;
+                listIdReceptionNotMatch.add(reception.getId());
                 for(String columnNameValue: columnNames)
                 {
                     Cell cell = row.createCell(columnCount);
@@ -1990,6 +2169,7 @@ public class MyRobot implements IRobot {
                 rowCount++;
                 Row row = sheet.createRow(rowCount);
                 columnCount = 0;
+                listRemoveIdReceptionNotMatch.add(link.getRecepcion().getId());
                 for(String columnNameValue: columnNames)
                 {
                     Cell cell = row.createCell(columnCount);
@@ -2018,7 +2198,95 @@ public class MyRobot implements IRobot {
                         case 20: cell.setCellValue(""); columnCount++; break;
                         case 21: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
                         case 22: cell.setCellValue(""); columnCount++; break;
-                        case 23: cell.setCellValue(pastFileName); columnCount++; break;
+                        case 23: cell.setCellValue(laterFileName); columnCount++; break;
+                        default: break; 
+                    }
+                }
+            }
+            server.info("Añadiendolos al archivo Excel");
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
+            book.write(outputStream);
+            book.close();
+            outputStream.close();
+            server.info("Cerrado Excel");
+        }
+        
+        public void getReceptionFinalNotMatch() throws Exception
+        {
+            int idFolio = 0; 
+            ArrayList<Integer> listIdReception = null;
+            ArrayList<Reception> listReception = new ArrayList<Reception>();
+            server.info("Lista de Id a eliminar: " + listRemoveIdReceptionNotMatch.size());
+            server.info("Lista que no tienen match con algo: " + listIdReceptionNotMatch.size());
+            HashSet<Integer> list = new HashSet<Integer>(listRemoveIdReceptionNotMatch);
+            HashSet<Integer> list2 = new HashSet<Integer>(listIdReceptionNotMatch);
+            server.info("Lista 1: " + list.size());
+            server.info("Lista 2 " + list2.size());
+            listIdReception = new ArrayList<Integer>(list);
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet sheet;
+            Row rowColumn = null;
+            if(listIdReceptionNotMatch != null && listRemoveIdReceptionNotMatch != null && listIdReception != null)
+            {
+                server.info("Total Id Reception Not Match: " + listIdReceptionNotMatch.size());
+                server.info("Total Id Reception que no se repiten y que hay que eliminar: " + listIdReception.size());
+                for(int a = 0; a < listIdReception.size(); a++)
+                {
+                    if(listIdReceptionNotMatch.contains(listIdReception.get(a)) == false)
+                    {
+                        server.info("Este elemento no se encuentra en la lista pero en la relacion si: " + listIdReception.get(a));
+                    }
+                    
+                    listIdReceptionNotMatch.remove(listIdReception.get(a));
+                }
+                
+                server.info("Total Id Reception que sobraron y no Hacen Match: " + listIdReception.size());
+            }
+            server.info("Total Id Reception Not Match: " + listIdReceptionNotMatch.size()); 
+            
+            listReception = databaseUtilities.getFinalReceptionsNotMatch(server, databasePath, listIdReceptionNotMatch);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Create Sheet from Excel File");
+            sheet = book.createSheet("Ventas Oxxo Sin Relacion");
+            String[] columnNames = new String[]{"MVTO", "Tienda", "Recibo", "Orden", "Adicional", "Remision", "Fecha", "Valor", "Iva", "Neto"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            rowColumn = sheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
+            server.info("Escribiendo Ventas que tienen relacion con un reporte de la semana posterior");
+            for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }
+            
+            for(Reception reception: listReception)
+            {
+                rowCount++;
+                Row row = sheet.createRow(rowCount);
+                columnCount = 0;
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: if(StringUtils.isBlank(reception.getMtvo())){cell.setCellValue("");}else{cell.setCellValue(reception.getMtvo());} columnCount++; break; 
+                        case 1: if(StringUtils.isBlank(reception.getTienda())){cell.setCellValue("");}else{cell.setCellValue(reception.getTienda());} columnCount++; break;
+                        case 2: if(StringUtils.isBlank(reception.getRecibo())){cell.setCellValue("");}else{cell.setCellValue(reception.getRecibo());} columnCount++; break;
+                        case 3: if(StringUtils.isBlank(reception.getOrden())){cell.setCellValue("");}else{cell.setCellValue(reception.getOrden());} columnCount++; break;
+                        case 4: if(StringUtils.isBlank(reception.getAdicional())){cell.setCellValue("");}else{cell.setCellValue(reception.getAdicional());} columnCount++; break;
+                        case 5: if(StringUtils.isBlank(reception.getRemision())){cell.setCellValue("");}else{cell.setCellValue(reception.getRemision());} columnCount++; break;
+                        case 6: if(StringUtils.isBlank(reception.getFecha())){cell.setCellValue("");}else{cell.setCellValue(reception.getFecha());} columnCount++; break;
+                        case 7: if(StringUtils.isBlank(reception.getValor())){cell.setCellValue("");}else{cell.setCellValue(reception.getValor());} columnCount++;; break;
+                        case 8: if(StringUtils.isBlank(reception.getIva())){cell.setCellValue("");}else{cell.setCellValue(reception.getIva());} columnCount++;; break;
+                        case 9: if(StringUtils.isBlank(reception.getNeto())){cell.setCellValue("");}else{cell.setCellValue(reception.getNeto());} columnCount++; break;
                         default: break; 
                     }
                 }

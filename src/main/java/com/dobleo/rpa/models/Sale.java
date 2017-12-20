@@ -13,6 +13,7 @@ public class Sale {
     private int id;
     private int idFolio;
     private String fecha;
+    private String fecha2;
     private String pedidoAdicional;
     private String factura; 
     private String folio;
@@ -29,7 +30,9 @@ public class Sale {
     private String clvRef2;
     private String clvRef3; 
     private String fechaDoc;
+    private String fechaDoc2;
     private String vencNeto;
+    private String vencNeto2;
     private String impteMl;
     private String ce;
     private String div;
@@ -52,6 +55,14 @@ public class Sale {
 
     public String getFecha() {
         return fecha;
+    }
+
+    public String getFecha2() {
+        return fecha2;
+    }
+
+    public void setFecha2(String fecha2) {
+        this.fecha2 = fecha2;
     }
 
     public void setFecha(String fecha) {
@@ -186,12 +197,28 @@ public class Sale {
         this.fechaDoc = fechaDoc;
     }
 
+    public String getFechaDoc2() {
+        return fechaDoc2;
+    }
+
+    public void setFechaDoc2(String fechaDoc2) {
+        this.fechaDoc2 = fechaDoc2;
+    }
+
     public String getVencNeto() {
         return vencNeto;
     }
 
     public void setVencNeto(String vencNeto) {
         this.vencNeto = vencNeto;
+    }
+
+    public String getVencNeto2() {
+        return vencNeto2;
+    }
+
+    public void setVencNeto2(String vencNeto2) {
+        this.vencNeto2 = vencNeto2;
     }
 
     public String getImpteMl() {
