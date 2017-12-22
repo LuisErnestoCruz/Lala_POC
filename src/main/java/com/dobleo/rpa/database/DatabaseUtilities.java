@@ -1759,7 +1759,7 @@ public class DatabaseUtilities {
             String sqlQuery = "";
             String sqlSubQuery1 = ""; 
             String sqlSubQuery2 = "";
-            sqlSubQuery1 = "SELECT ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, recepciones_id, recepciones_adicional, recepciones_tienda, recepciones_remision, recepciones_fecha, recepciones_neto, ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje  FROM(";
+            sqlSubQuery1 = "SELECT ventas_id, ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, recepciones_id, recepciones_adicional, recepciones_tienda, recepciones_remision, recepciones_fecha, recepciones_neto, ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje  FROM(";
             sqlSubQuery1 += "SELECT * FROM (SELECT ventas_id, ventas_idFolio, ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_nombre_destinatario2, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, (ventas_importe - ROUND(ventas_importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, (ventas_importe + ROUND(ventas_importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3 FROM (SELECT ventas.id AS ventas_id, ventas.idFolio AS ventas_idFolio, ventas.fecha AS ventas_fecha, ventas.pedido_adicional AS ventas_pedido_adicional, ventas.factura AS ventas_factura, ventas.folio AS ventas_folio, ventas.solicitante AS ventas_solicitante, ventas.cedis AS ventas_cedis, ventas.destinatario AS ventas_destinatario, ventas.nombre_destinatario AS ventas_nombre_destinatario, ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, substr(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, substr(ventas.factura_remisionSicav, 4, length(ventas.factura_remisionSicav)) AS ventas_remisionSicav, ventas.importe AS ventas_importe FROM ventas WHERE idFolio = ? AND id NOT IN(SELECT idVenta FROM(SELECT * FROM(SELECT * FROM(SELECT  " +
             "ventas.id AS idVenta, " +
             "ventas.idFolio AS ventas_idFolio, " +
@@ -2300,6 +2300,7 @@ public class DatabaseUtilities {
                 link = new Link(); 
                 reception = new Reception();
                 sale = new Sale();
+                sale.setId(resultSet.getInt("ventas_id"));
                 sale.setFecha(resultSet.getString("ventas_fecha"));
                 sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
                 sale.setFactura(resultSet.getString("ventas_factura"));
@@ -2394,6 +2395,170 @@ public class DatabaseUtilities {
             server.error(sw.toString());
         }
         return listReceptionResult;
+    }
+    
+    public ArrayList<Link> getMatchSaleByCutDate(IJidokaServer<?> server, String url, int currentIdFolio, ArrayList listIdReception, ArrayList listIdSale)
+    {
+       ArrayList<Link> listResult = new ArrayList<Link>(); 
+        try
+        {
+            int index = 0; 
+            int times = 0; 
+            Reception reception = new Reception();
+            Sale sale = new Sale();
+            Link link = new Link();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = "";
+            StringBuilder sqlSubQuery1 = new StringBuilder(); 
+            StringBuilder sqlSubQuery2 = new StringBuilder();
+            sqlQuery += "SELECT  " +
+            "ventas_id, " +
+            "ventas_idFolio, " +
+            "ventas_fecha, " +
+            "ventas_fecha2, " +
+            "CAST((strftime('%d', ventas_fecha2)) AS INTEGER) AS ventas_fecha3, " +
+            "ventas_pedido_adicional, " +
+            "ventas_factura, " +
+            "ventas_folio, " +
+            "ventas_solicitante, " +
+            "ventas_cedis, " +
+            "ventas_destinatario, " +
+            "ventas_nombre_destinatario, " +
+            "ventas_nombre_destinatario2, " +
+            "ventas_abreviacion_factura, " +
+            "ventas_remisionSicav, " +
+            "ventas_importe, " +
+            "ventas_importe_2, " +
+            "ventas_importe_3, " +
+            "recepciones_id, " +
+            "recepciones_idFolio, " +
+            "recepciones_adicional, " +
+            "recepciones_tienda, " +
+            "recepciones_tienda2, " +
+            "recepciones_remision, " +
+            "recepciones_fecha, " +
+            "recepciones_fecha2, " +
+            "CAST(strftime('%d', recepciones_fecha2) AS INTEGER) AS recepciones_fecha3, " +
+            "recepciones_valor, " +
+            "recepciones_neto, " +
+            "ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "FROM (";
+            sqlSubQuery1.append("SELECT * FROM(SELECT " +
+            "ventas.id AS ventas_id, " +
+            "ventas.idFolio AS ventas_idFolio, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.fecha2 AS ventas_fecha2, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3 " +
+            "FROM ventas  " +
+            "INNER JOIN documento ON documento.id = ventas.idFolio " +
+            "WHERE ventas.idFolio = ? AND ventas.id IN(");
+            
+            for(int a = 0; a < listIdSale.size(); a++)
+            {
+                sqlSubQuery1.append(listIdSale.get(a).toString());
+                sqlSubQuery1.append(",");
+            }
+            sqlSubQuery1.deleteCharAt(sqlSubQuery1.lastIndexOf(","));
+            sqlSubQuery1.append(")");
+            sqlSubQuery1.append(")");
+            
+            sqlQuery += sqlSubQuery1.toString();
+            
+            sqlQuery += "CROSS JOIN";
+            
+            sqlSubQuery2.append("(SELECT  " +
+            "recepciones.id AS recepciones_id, " +
+            "recepciones.idFolio AS recepciones_idFolio, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "recepciones.tienda2 AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.fecha2 AS recepciones_fecha2, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto " +
+            "FROM recepciones  " +
+            "WHERE recepciones.idFolio = ? AND id IN(");
+            
+            for(int b = 0; b < listIdReception.size(); b++)
+            {
+                sqlSubQuery2.append(listIdReception.get(b).toString());
+                sqlSubQuery2.append(","); 
+            }
+            sqlSubQuery2.deleteCharAt(sqlSubQuery2.lastIndexOf(","));
+            sqlSubQuery2.append(")");
+            sqlSubQuery2.append(")");
+            
+            sqlQuery += sqlSubQuery2.toString();
+            
+            sqlQuery += ")";
+            sqlQuery += "WHERE (ventas_remisionSicav = recepciones_remision) OR (ventas_pedido_adicional = recepciones_adicional) OR ((ventas_remisionSicav LIKE '%' || recepciones_remision) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) OR ((recepciones_fecha3 <= ventas_fecha3) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))"; 
+            
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, currentIdFolio);
+            preparedStatement.setInt(2, currentIdFolio);
+                        
+            ResultSet resultSet = preparedStatement.executeQuery();
+           
+            while(resultSet.next())
+            {
+                link = new Link(); 
+                reception = new Reception();
+                sale = new Sale();
+                sale.setId(resultSet.getInt("ventas_id"));
+                sale.setFecha(resultSet.getString("ventas_fecha"));
+                sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
+                sale.setFactura(resultSet.getString("ventas_factura"));
+                sale.setFolio(resultSet.getString("ventas_folio"));
+                sale.setSolicitante(resultSet.getString("ventas_solicitante"));
+                sale.setCedis(resultSet.getString("ventas_cedis"));
+                sale.setDestinatario(resultSet.getString("ventas_destinatario"));
+                sale.setNombreDestinatario(resultSet.getString("ventas_nombre_destinatario"));
+                sale.setFacturaRemisionSicav(resultSet.getString("ventas_remisionSicav"));
+                sale.setImporte(resultSet.getString("ventas_importe"));
+                reception.setId(resultSet.getInt("recepciones_id"));
+                reception.setAdicional(resultSet.getString("recepciones_adicional"));
+                reception.setTienda(resultSet.getString("recepciones_tienda"));
+                reception.setRemision(resultSet.getString("recepciones_remision"));
+                reception.setFecha(resultSet.getString("recepciones_fecha"));
+                reception.setNeto(resultSet.getString("recepciones_neto"));
+                link.setAbreviacionVenta(resultSet.getString("ventas_abreviacion_factura"));
+                link.setDiferencia(resultSet.getString("amarre_diferencia"));
+                link.setPorcentaje(resultSet.getString("amarre_porcentaje"));
+                link.setBusqueda("Ventas Oxxo por Fecha de Corte");
+                link.setRecepcion(reception);
+                link.setVenta(sale);
+                listResult.add(link);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listResult = new ArrayList<Link>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listResult; 
     }
     
     

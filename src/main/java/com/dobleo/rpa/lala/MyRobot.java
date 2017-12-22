@@ -95,8 +95,10 @@ public class MyRobot implements IRobot {
         private Map<Integer, String> virtualSalesColumns;
         private Map<Integer, String> salesColumns;
         private ArrayList<Link> listTenPoint;
-        private ArrayList<Integer> listIdReceptionNotMatch;
+        private ArrayList<Integer> listIdReceptionNotMatch; 
         private ArrayList<Integer> listRemoveIdReceptionNotMatch;
+        private ArrayList<Integer> listIdSaleNotMatch;
+        private ArrayList<Integer> listRemoveIdSaleNotMatch;
 	/**
 	 * Action "start"
 	 * @return
@@ -135,6 +137,8 @@ public class MyRobot implements IRobot {
                 databasePath = "";
                 listIdReceptionNotMatch = new ArrayList<Integer>();
                 listRemoveIdReceptionNotMatch = new ArrayList<Integer>();
+                listIdSaleNotMatch = new ArrayList<Integer>();
+                listRemoveIdSaleNotMatch = new ArrayList<Integer>();
                 currentfileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
                 pastFileName = server.getParameters().get(PARAM_PAST_INPUT_FILE);
                 laterFileName = server.getParameters().get(PARAM_LATER_INPUT_FILE);
@@ -1888,6 +1892,7 @@ public class MyRobot implements IRobot {
                 rowCount++;
                 Row row = sheet.createRow(rowCount);
                 columnCount = 0;
+                listIdSaleNotMatch.add(sale.getId());
                 for(String columnNameValue: columnNames)
                 {
                     Cell cell = row.createCell(columnCount);
@@ -2080,6 +2085,7 @@ public class MyRobot implements IRobot {
                 rowCount++;
                 Row row = sheet.createRow(rowCount);
                 columnCount = 0;
+                listRemoveIdSaleNotMatch.add(link.getVenta().getId());
                 for(String columnNameValue: columnNames)
                 {
                     Cell cell = row.createCell(columnCount);
@@ -2211,41 +2217,184 @@ public class MyRobot implements IRobot {
             server.info("Cerrado Excel");
         }
         
-        public void getReceptionFinalNotMatch() throws Exception
+        public void getRecepctionByCutDate() throws Exception
         {
-            int idFolio = 0; 
+            int idFolio = 0;
+            Document document = null;
             ArrayList<Integer> listIdReception = null;
-            ArrayList<Reception> listReception = new ArrayList<Reception>();
-            server.info("Lista de Id a eliminar: " + listRemoveIdReceptionNotMatch.size());
-            server.info("Lista que no tienen match con algo: " + listIdReceptionNotMatch.size());
-            HashSet<Integer> list = new HashSet<Integer>(listRemoveIdReceptionNotMatch);
-            HashSet<Integer> list2 = new HashSet<Integer>(listIdReceptionNotMatch);
-            server.info("Lista 1: " + list.size());
-            server.info("Lista 2 " + list2.size());
-            listIdReception = new ArrayList<Integer>(list);
+            ArrayList<Integer> listIdSale = null;
+            ArrayList<Link> listLink = new ArrayList<Link>();
+            
+            HashSet<Integer> listIdRecepctionDelete = new HashSet<Integer>(listRemoveIdReceptionNotMatch);
+            HashSet<Integer> listIdSaleDelete = new HashSet<Integer>(listRemoveIdSaleNotMatch);
+            
+            listIdReception = new ArrayList<Integer>(listIdRecepctionDelete);
+            listIdSale = new ArrayList<Integer>(listIdSaleDelete);
             FileInputStream inputFile = null;
             Workbook book;
             Sheet sheet;
             Row rowColumn = null;
             if(listIdReceptionNotMatch != null && listRemoveIdReceptionNotMatch != null && listIdReception != null)
             {
-                server.info("Total Id Reception Not Match: " + listIdReceptionNotMatch.size());
-                server.info("Total Id Reception que no se repiten y que hay que eliminar: " + listIdReception.size());
                 for(int a = 0; a < listIdReception.size(); a++)
                 {
-                    if(listIdReceptionNotMatch.contains(listIdReception.get(a)) == false)
+                    /*if(listIdReceptionNotMatch.contains(listIdReception.get(a)) == false)
                     {
-                        server.info("Este elemento no se encuentra en la lista pero en la relacion si: " + listIdReception.get(a));
-                    }
+                        server.info("Esta recepcion no se encuentra en la lista pero en la relacion si: " + listIdReception.get(a));
+                    }*/
                     
                     listIdReceptionNotMatch.remove(listIdReception.get(a));
                 }
-                
-                server.info("Total Id Reception que sobraron y no Hacen Match: " + listIdReception.size());
             }
-            server.info("Total Id Reception Not Match: " + listIdReceptionNotMatch.size()); 
+            server.info("Total Id Reception Not Match que quedan por procesar: " + listIdReceptionNotMatch.size()); 
+            
+            if(listIdSaleNotMatch != null && listRemoveIdSaleNotMatch != null && listIdSale != null)
+            {
+                for(int b = 0; b < listIdSale.size(); b++)
+                {
+                    /*if(listIdSaleNotMatch.contains(listIdSale.get(b)) == false)
+                    {
+                        server.info("Esta venta no se encuentra en la lista pero en la relacion si: " +  listIdSale.get(b)); 
+                    }*/
+                    
+                    listIdSaleNotMatch.remove(listIdSale.get(b));
+                }
+            }
+            server.info("Total Id Ventas Not Match que quedan por procesar: " + listIdSaleNotMatch.size());
+            
+            document = new Document();
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(currentfileName);
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            
+            listLink = databaseUtilities.getMatchSaleByCutDate(server, databasePath, idFolio, listIdReceptionNotMatch, listIdSaleNotMatch);
+            
+            server.info("Numero de Registros que hacen relacion por fecha de Corte: " + listLink.size());
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Create Sheet from Excel File");
+            sheet = book.createSheet("Ventas Oxxo Fecha Corte");
+            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            rowColumn = sheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
+            //server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            server.info("Escribiendo Ventas que tienen relacion por Fecha de Corte");
+            for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }
+           
+            for(Link link: listLink)
+            {
+                rowCount++;
+                Row row = sheet.createRow(rowCount);
+                columnCount = 0;
+                listRemoveIdReceptionNotMatch.add(link.getRecepcion().getId());
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: if(StringUtils.isBlank(link.getVenta().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFecha());} columnCount++; break; 
+                        case 1: if(StringUtils.isBlank(link.getVenta().getPedidoAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getPedidoAdicional());} columnCount++; break;
+                        case 2: if(StringUtils.isBlank(link.getVenta().getFactura())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFactura());} columnCount++; break;
+                        case 3: if(StringUtils.isBlank(link.getVenta().getFolio())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFolio());} columnCount++; break;
+                        case 4: if(StringUtils.isBlank(link.getVenta().getSolicitante())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getSolicitante());} columnCount++; break;
+                        case 5: if(StringUtils.isBlank(link.getVenta().getCedis())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getCedis());} columnCount++; break;
+                        case 6: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                        case 7: if(StringUtils.isBlank(link.getVenta().getNombreDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getNombreDestinatario());} columnCount++; break;
+                        case 8: if(StringUtils.isBlank(link.getAbreviacionVenta())){cell.setCellValue("");}else{cell.setCellValue(link.getAbreviacionVenta());} columnCount++; break;
+                        case 9: if(StringUtils.isBlank(link.getVenta().getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFacturaRemisionSicav());} columnCount++; break;
+                        case 10: if(StringUtils.isBlank(link.getVenta().getImporte())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getImporte());} columnCount++; break;
+                        case 11: cell.setCellValue(""); columnCount++; break;
+                        case 12: if(StringUtils.isBlank(link.getRecepcion().getAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getAdicional());} columnCount++; break;
+                        case 13: if(StringUtils.isBlank(link.getRecepcion().getTienda())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getTienda());} columnCount++; break;
+                        case 14: if(StringUtils.isBlank(link.getRecepcion().getRemision())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getRemision());} columnCount++; break;
+                        case 15: if(StringUtils.isBlank(link.getRecepcion().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getFecha());} columnCount++; break;
+                        case 16: if(StringUtils.isBlank(link.getRecepcion().getNeto())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getNeto());} columnCount++; break;
+                        case 17: cell.setCellValue(""); columnCount++; break;
+                        case 18: if(StringUtils.isBlank(link.getDiferencia())){cell.setCellValue("");}else{cell.setCellValue(link.getDiferencia());} columnCount++; break; 
+                        case 19: if(StringUtils.isBlank(link.getPorcentaje())){cell.setCellValue("");}else{cell.setCellValue(link.getPorcentaje());} columnCount++; break;
+                        case 20: cell.setCellValue(""); columnCount++; break;
+                        case 21: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                        case 22: cell.setCellValue(""); columnCount++; break;
+                        case 23: if(StringUtils.isBlank(link.getBusqueda())){cell.setCellValue("");}else{cell.setCellValue(link.getBusqueda());} columnCount++; break;
+                        default: break; 
+                    }
+                }
+            }
+            server.info("Añadiendolos al archivo Excel");
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
+            book.write(outputStream);
+            book.close();
+            outputStream.close();
+            server.info("Cerrado Excel");
+        }
+        
+        public void getReceptionFinalNotMatch() throws Exception
+        {
+            int idFolio = 0;
+            Document document = null;
+            ArrayList<Integer> listIdReception = null;
+            ArrayList<Integer> listIdSale = null;
+            ArrayList<Reception> listReception = new ArrayList<Reception>();
+            ArrayList<Link> listLink = new ArrayList<Link>();
+            
+            HashSet<Integer> listIdRecepctionDelete = new HashSet<Integer>(listRemoveIdReceptionNotMatch);
+            HashSet<Integer> listIdReceptionNoRelation = new HashSet<Integer>(listIdReceptionNotMatch);
+            HashSet<Integer> listIdSaleDelete = new HashSet<Integer>(listRemoveIdSaleNotMatch);
+            HashSet<Integer> listIdSaleNotRelation = new HashSet<Integer>(listIdSaleNotMatch);
+            
+            listIdReception = new ArrayList<Integer>(listIdRecepctionDelete);
+            listIdSale = new ArrayList<Integer>(listIdSaleDelete);
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet sheet;
+            Row rowColumn = null;
+            if(listIdReceptionNotMatch != null && listRemoveIdReceptionNotMatch != null && listIdReception != null)
+            {
+                for(int a = 0; a < listIdReception.size(); a++)
+                {
+                    /*if(listIdReceptionNotMatch.contains(listIdReception.get(a)) == false)
+                    {
+                        server.info("Esta recepcion no se encuentra en la lista pero en la relacion si: " + listIdReception.get(a));
+                    }*/
+                    
+                    listIdReceptionNotMatch.remove(listIdReception.get(a));
+                }
+            }
+            server.info("Total Id Reception Not Match que quedan por procesar: " + listIdReceptionNotMatch.size()); 
+            
+            if(listIdSaleNotMatch != null && listRemoveIdSaleNotMatch != null && listIdSale != null)
+            {
+                for(int b = 0; b < listIdSale.size(); b++)
+                {
+                    /*if(listIdSaleNotMatch.contains(listIdSale.get(b)) == false)
+                    {
+                        server.info("Esta venta no se encuentra en la lista pero en la relacion si: " +  listIdSale.get(b)); 
+                    }*/
+                    
+                    listIdSaleNotMatch.remove(listIdSale.get(b));
+                }
+            }
+            server.info("Total Id Ventas Not Match que quedan por procesar: " + listIdSaleNotMatch.size());
+            
+            document = new Document();
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(currentfileName);
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
             
             listReception = databaseUtilities.getFinalReceptionsNotMatch(server, databasePath, listIdReceptionNotMatch);
+            
+            server.info("Total de Registros que ya no cuentan con relacion: " + listReception.size()); 
             server.info("Open Excel File"); 
             inputFile = new FileInputStream(new File(currentExcelFilePath));
             
