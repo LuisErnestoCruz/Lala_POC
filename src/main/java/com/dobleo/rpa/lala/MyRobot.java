@@ -1,6 +1,7 @@
 package com.dobleo.rpa.lala;
 
 import com.dobleo.rpa.database.DatabaseUtilities;
+import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
 import com.dobleo.rpa.models.Link;
 import com.dobleo.rpa.models.Reception;
@@ -65,35 +66,44 @@ public class MyRobot implements IRobot {
 	 * Current item index, base-1
 	 */
         private boolean existLaterInputFile = false;
+        private boolean existPastInputFile = false;
 	private int currentItem = 1;
         private int currentLinkIndex = 0;
         private DatabaseUtilities databaseUtilities;
 	private String databasePath;
+        private String branchExcelFilePath;
         private String currentExcelFilePath;
         private String pastExcelFilePath;
         private String laterExcelFilePath;
         private String folioNumber;
         private String pastFolioNumber;
         private String laterFolioNumber;
+        private String branchFileName;
         private String currentfileName;
         private String pastFileName;
         private String laterFileName;
         private String incidencePercentage;
+        private static final String PARAM_BRANCH_INPUT_FILE = "sucursales";
         private static final String PARAM_CURRENT_INPUT_FILE = "folioBase";
-        private static final String PARAM_PAST_INPUT_FILE = "folioAnterior"; 
+        private static final String PARAM_PAST_INPUT_FILE = "folioPasado"; 
         private static final String PARAM_LATER_INPUT_FILE = "folioPosterior";
         private static final String PARAM_INCIDENCE_PERCENTAGE = "porcentajeIncidencia" ;
         private static final String DATABASE_NAME = "grupolala";
         private static final String TABLE_DOCUMENTS = "documento";
         private static final String TABLE_RECEPTIONS = "recepciones";
         private static final String TABLE_SALES = "ventas";
+        private static final String TABLE_BRANCH = "sucursales"; 
         private static final String TABLE_VIRTUAL_RECEPTIONS = "virtual_recepciones"; 
-        private static final String TABLE_VIRTUAL_SALES = "virtual_ventas"; 
+        private static final String TABLE_VIRTUAL_SALES = "virtual_ventas";
+        private static final String TABLE_VIRTUALS_MOORAGE = "virtual_amarre"; 
         private Map<Integer, String> documentColumns;
         private Map<Integer, String> receptionsColumns;
         private Map<Integer, String> virtualReceptionsColumns;
         private Map<Integer, String> virtualSalesColumns;
+        private Map<Integer, String> virtualMoorageColumns;
         private Map<Integer, String> salesColumns;
+        private Map<Integer, String> branchsColumns;
+        private ArrayList<Link> listFirstJoin; 
         private ArrayList<Link> listTenPoint;
         private ArrayList<Integer> listIdReceptionNotMatch; 
         private ArrayList<Integer> listRemoveIdReceptionNotMatch;
@@ -106,6 +116,7 @@ public class MyRobot implements IRobot {
 	 */
 	public void start() throws Exception {
 		
+                
 		server = (IJidokaServer<?>) JidokaFactory.getServer();
 		
 		windows = IJidokaRobot.getInstance(this);
@@ -133,18 +144,31 @@ public class MyRobot implements IRobot {
                 receptionsColumns = null;
                 virtualReceptionsColumns = null;
                 virtualSalesColumns = null;
+                virtualMoorageColumns = null;
                 salesColumns = null;
                 databasePath = "";
                 listIdReceptionNotMatch = new ArrayList<Integer>();
                 listRemoveIdReceptionNotMatch = new ArrayList<Integer>();
                 listIdSaleNotMatch = new ArrayList<Integer>();
                 listRemoveIdSaleNotMatch = new ArrayList<Integer>();
+                branchFileName = server.getParameters().get(PARAM_BRANCH_INPUT_FILE);
                 currentfileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
                 pastFileName = server.getParameters().get(PARAM_PAST_INPUT_FILE);
                 laterFileName = server.getParameters().get(PARAM_LATER_INPUT_FILE);
+                branchExcelFilePath = Paths.get(server.getCurrentDir(), branchFileName).toString();
                 currentExcelFilePath = Paths.get(server.getCurrentDir(), currentfileName).toString();
-                pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
-                incidencePercentage = server.getParameters().get(PARAM_INCIDENCE_PERCENTAGE);
+                //pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
+                incidencePercentage = server.getParameters().get(PARAM_INCIDENCE_PERCENTAGE);                
+                
+                if(pastFileName != null)
+                {
+                    if(StringUtils.isBlank(pastFileName) == false && StringUtils.isEmpty(pastFileName) == false)
+                    {
+                        pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
+                        existPastInputFile = true;
+                    }
+                }
+                
                 if(laterFileName != null)
                 {
                     if(StringUtils.isBlank(laterFileName) == false && StringUtils.isEmpty(laterFileName) == false)
@@ -173,15 +197,22 @@ public class MyRobot implements IRobot {
             server.info("Initialization ventas Table Columns");
             databaseUtilities.saleTableColumns();
             salesColumns = databaseUtilities.getSalesColumns();
+            server.info("Initialization sucursales Table Columns");
+            databaseUtilities.branchTableColumns();
+            branchsColumns = databaseUtilities.getBranchColumns(); 
             server.info("Initialization Virtual ventas Table Columns");
             databaseUtilities.virtualSaleTableColumns();
             virtualSalesColumns = databaseUtilities.getVirtualSalesColumns();
+            server.info("Initialization Virtual amarre Table Columns");
+            databaseUtilities.virtualTableColumns();
+            virtualMoorageColumns = databaseUtilities.getVirtualTableColumns();
             databaseUtilities.createTable(server, databasePath, TABLE_DOCUMENTS, documentColumns);
             databaseUtilities.createTable(server, databasePath, TABLE_RECEPTIONS, receptionsColumns);
-            databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns);
+            //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns);
             databaseUtilities.createTable(server, databasePath, TABLE_SALES, salesColumns);
-            databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns);
-            
+            databaseUtilities.createTable(server, databasePath, TABLE_BRANCH, branchsColumns); 
+            //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns);
+            //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUALS_MOORAGE, virtualMoorageColumns);
         }
         
         public void readExcelFileInformation() throws Exception
@@ -382,6 +413,116 @@ public class MyRobot implements IRobot {
             
             //System.out.println("Creado para ambos formatos");
         }
+        
+        public void readExcelBranch() throws Exception
+        {   
+            int times = 0;
+            int columnNumberRow = 0;
+            int maxColumnNumberRow = 0;
+            int totalCellBlank = 0;
+            int totalColumn = 0;
+            int columnIndex = 0;
+            ArrayList<Branch> listBranch = new ArrayList<Branch>(); 
+            String cellValue = null;
+            Reception reception = new Reception();
+            Branch branch = new Branch(); 
+            Workbook book = null;
+            //Row row = null;
+            Sheet branchSheet = null;
+            InputStream inputFile = null;
+            Iterator<Cell> iteratorCell = null;
+            Date date = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(branchExcelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            //book = WorkbookFactory.create(inputFile);
+            book = StreamingReader.builder().open(inputFile);
+            server.info("Get Sheet from Excel File");
+            branchSheet = book.getSheetAt(0);
+            server.info("Read All Filled Row From Sheet: " + branchSheet.getSheetName()); 
+            server.info("Insert Data Information Into sucursales Table");
+            
+            for(Row row: branchSheet)
+            {
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+
+                totalCellBlank = 0;
+                iteratorCell = null;
+                branch = null;
+                branch = new Branch();
+                
+                if(columnNumberRow > 16)
+                {
+                    totalColumn = columnNumberRow - 3;
+                }
+                else 
+                {
+                    totalColumn = columnNumberRow;
+                }
+                
+                if(totalColumn != 16)
+                {
+                    server.info("Valor es: " + totalColumn); 
+                }
+                
+                iteratorCell = row.cellIterator();
+
+                
+
+                if(totalColumn == 16 && times > 1)
+                {
+                    columnIndex = 0; 
+                    for(int b = 0; b < totalColumn; b++)
+                    {
+                        dataFormatter = new DataFormatter();
+                        cellValue = null;
+                        cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                        //cellValue = cell.getStringCellValue();
+                        //if(columnIndex <= 9)
+                        //{
+                            switch(b)
+                            {
+                                case 0: if(StringUtils.isBlank(cellValue)){branch.setAnalista("");}else{branch.setAnalista(cellValue);} columnIndex++; break;
+                                case 1: if(StringUtils.isBlank(cellValue)){branch.setCliente("");}else{branch.setCliente(cellValue);} columnIndex++; break;
+                                case 2: if(StringUtils.isBlank(cellValue)){branch.setZona("");}else{branch.setZona(cellValue);} columnIndex++; break;
+                                case 3: if(StringUtils.isBlank(cellValue)){branch.setCentro("");}else{branch.setCentro(cellValue);} columnIndex++; break;
+                                case 4: if(StringUtils.isBlank(cellValue)){branch.setCedis("");}else{branch.setCedis(cellValue);} columnIndex++; break;
+                                case 5: if(StringUtils.isBlank(cellValue)){branch.setSucursalSAP("");}else{branch.setSucursalSAP(cellValue);} columnIndex++; break;
+                                case 6: if(StringUtils.isBlank(cellValue)){branch.setSucursalLALA("");}else{branch.setSucursalLALA(cellValue);} columnIndex++; break;
+                                case 7: columnIndex++; break;
+                                case 8: if(StringUtils.isBlank(cellValue)){branch.setCrLALA("");}else{branch.setCrLALA(cellValue);} columnIndex++; break;
+                                case 9: if(StringUtils.isBlank(cellValue)){branch.setPlaza1("");}else{branch.setPlaza1(cellValue);} columnIndex++; break; 
+                                case 10: if(StringUtils.isBlank(cellValue)){branch.setCrOXXO("");}else{branch.setCrOXXO(cellValue);} columnIndex++; break;
+                                case 11: if(StringUtils.isBlank(cellValue)){branch.setPlaza2("");}else{branch.setPlaza2(cellValue);} columnIndex++; break;
+                                case 12: if(StringUtils.isBlank(cellValue)){branch.setSucursalOXXO("");}else{branch.setSucursalOXXO(cellValue);} columnIndex++; break;
+                                case 13: if(StringUtils.isBlank(cellValue)){branch.setLiquidacion("");}else{branch.setLiquidacion(cellValue);} columnIndex++; break;
+                                case 14: columnIndex++; break;
+                                case 15: if(StringUtils.isBlank(cellValue)){branch.setVentaCruzada("");}else{branch.setVentaCruzada(cellValue);} columnIndex++; break;
+                                default: break;
+                            }
+                        //}
+
+                    }
+                    listBranch.add(branch);
+                    //databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                }
+                
+                times = times + 1;
+
+
+            }
+            databaseUtilities.insertIntoBranch(server, databasePath, TABLE_BRANCH, branchsColumns, listBranch);
+            server.info("Insert Data Information into sucursales Table was sucessful");
+            server.info("Close Excel File"); 
+            book.close();
+        }
+        
         
         public void readExcelFolioSheet() throws Exception
         {
@@ -734,7 +875,7 @@ public class MyRobot implements IRobot {
                 }
             }
             databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, listReception);
-            databaseUtilities.insertIntoVirtualReception(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns, listReception); 
+            //databaseUtilities.insertIntoVirtualReception(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns, listReception); 
             server.info("Insert Data Information into recepciones Table was sucessful");
             server.info("Close Excel File"); 
             book.close();
@@ -880,7 +1021,7 @@ public class MyRobot implements IRobot {
                 }
             }
             databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, listReception);
-            databaseUtilities.insertIntoVirtualReception(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns, listReception); 
+            //databaseUtilities.insertIntoVirtualReception(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns, listReception); 
             server.info("Insert Data Information into recepciones Table was sucessful");
             server.info("Close Excel File"); 
             book.close();
@@ -1026,7 +1167,7 @@ public class MyRobot implements IRobot {
                 }
             }
             databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, listReception);
-            databaseUtilities.insertIntoVirtualReception(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns, listReception); 
+            //databaseUtilities.insertIntoVirtualReception(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns, listReception); 
             server.info("Insert Data Information into recepciones Table was sucessful");
             server.info("Close Excel File"); 
             book.close();
@@ -1342,7 +1483,7 @@ public class MyRobot implements IRobot {
                 }
             }*/
             databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale);
-            databaseUtilities.insertIntoVirtualSale(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns, listSale);
+            //databaseUtilities.insertIntoVirtualSale(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns, listSale);
             server.info("Insert Data Information into ventas Table was sucessful");
             server.info("Close Excel File");
             book.close();
@@ -1547,7 +1688,7 @@ public class MyRobot implements IRobot {
                 }
             }
             databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale);
-            databaseUtilities.insertIntoVirtualSale(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns, listSale);
+            //databaseUtilities.insertIntoVirtualSale(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns, listSale);
             server.info("Insert Data Information into ventas Table was sucessful");
             server.info("Close Excel File");
             book.close();
@@ -1752,14 +1893,14 @@ public class MyRobot implements IRobot {
                 }
             }
             databaseUtilities.insertIntoSale(server, databasePath, TABLE_SALES, salesColumns, listSale);
-            databaseUtilities.insertIntoVirtualSale(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns, listSale);
+            //databaseUtilities.insertIntoVirtualSale(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns, listSale);
             server.info("Insert Data Information into ventas Table was sucessful");
             server.info("Close Excel File");
             book.close();
             
         }
         
-        public void processLink() throws Exception
+        public void processFirstJoin() throws Exception
         {
             //int number1 = 0; 
             //int number2 = 0;
@@ -1768,6 +1909,7 @@ public class MyRobot implements IRobot {
             Workbook book;
             Sheet linkSheet;
             Row rowColumn = null; 
+            ArrayList<Link> listLink;
             Document document = new Document(); 
             document.setNumeroFolio(folioNumber);
             document.setNombre(currentfileName);
@@ -1782,16 +1924,16 @@ public class MyRobot implements IRobot {
             book = WorkbookFactory.create(inputFile);
             //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
             server.info("Get Sheet from Excel File");
-            linkSheet = book.createSheet("Punto 10");
+            linkSheet = book.createSheet("Puntos 8-9");
             String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
             int rowCount = 0; 
             int columnCount = 0;
             rowColumn = linkSheet.createRow(rowCount);
             server.info("Read All Filled Row From Sheet: " + linkSheet.getSheetName());
-            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio);
-            server.info("Total de Link Elementos: " + listTenPoint.size());
+            listFirstJoin = databaseUtilities.joinByRemissionAndAdditionalOrder(server, databasePath, idFolio);
+            server.info("Total de Link Elementos: " + listFirstJoin.size());
             //server.info("Total de Filas: " + linkSheet.getLastRowNum());
-            server.info("Escribiendo Datos del Punto 10");
+            server.info("Escribiendo Datos del Punto 8 y 9");
             for(String columnName: columnNames)
             {
                 Cell cellName = rowColumn.createCell(columnCount);
@@ -1799,11 +1941,13 @@ public class MyRobot implements IRobot {
                 columnCount++;
             }
             
-            for(Link link: listTenPoint)
+            for(Link link: listFirstJoin)
             {
                 rowCount++;
                 Row row = linkSheet.createRow(rowCount);
                 columnCount = 0;
+                listRemoveIdSaleNotMatch.add(link.getVenta().getId());
+                listRemoveIdReceptionNotMatch.add(link.getRecepcion().getId());
                 for(String columnNameValue: columnNames)
                 {
                     Cell cell = row.createCell(columnCount);
@@ -1842,7 +1986,96 @@ public class MyRobot implements IRobot {
             book.write(outputStream);
             book.close();
             outputStream.close();
-            server.info("Cerrado Excel"); 
+            server.info("Cerrado Excel");
+        }
+        
+        public void processLink() throws Exception
+        {
+            //int number1 = 0; 
+            //int number2 = 0;
+            int idFolio = 0; 
+            FileInputStream inputFile = null;
+            Workbook book;
+            Sheet linkSheet;
+            Row rowColumn = null; 
+            ArrayList<Link> listLink;
+            Document document = new Document(); 
+            document.setNumeroFolio(folioNumber);
+            document.setNombre(currentfileName);
+            Iterator<Row> iterator1 = null;
+            Iterator<Row> iterator2 = null;
+            server.info("Obtain Id From documento Table");
+            idFolio = databaseUtilities.getIdFolio(server, databasePath, TABLE_DOCUMENTS, document);
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(currentExcelFilePath));
+            
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
+            server.info("Get Sheet from Excel File");
+            linkSheet = book.createSheet("Punto 10");
+            String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
+            int rowCount = 0; 
+            int columnCount = 0;
+            rowColumn = linkSheet.createRow(rowCount);
+            server.info("Read All Filled Row From Sheet: " + linkSheet.getSheetName());
+            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio);
+            server.info("Total de Link Elementos: " + listTenPoint.size());
+            //server.info("Total de Filas: " + linkSheet.getLastRowNum());
+            server.info("Escribiendo Datos del Punto 10");
+            for(String columnName: columnNames)
+            {
+                Cell cellName = rowColumn.createCell(columnCount);
+                cellName.setCellValue(columnName);
+                columnCount++;
+            }
+            
+            for(Link link: listTenPoint)
+            {
+                rowCount++;
+                Row row = linkSheet.createRow(rowCount);
+                columnCount = 0;
+                listRemoveIdSaleNotMatch.add(link.getVenta().getId());
+                listRemoveIdReceptionNotMatch.add(link.getRecepcion().getId());
+                for(String columnNameValue: columnNames)
+                {
+                    Cell cell = row.createCell(columnCount);
+                    switch(columnCount)
+                    {
+                        case 0: if(StringUtils.isBlank(link.getVenta().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFecha());} columnCount++; break; 
+                        case 1: if(StringUtils.isBlank(link.getVenta().getPedidoAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getPedidoAdicional());} columnCount++; break;
+                        case 2: if(StringUtils.isBlank(link.getVenta().getFactura())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFactura());} columnCount++; break;
+                        case 3: if(StringUtils.isBlank(link.getVenta().getFolio())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFolio());} columnCount++; break;
+                        case 4: if(StringUtils.isBlank(link.getVenta().getSolicitante())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getSolicitante());} columnCount++; break;
+                        case 5: if(StringUtils.isBlank(link.getVenta().getCedis())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getCedis());} columnCount++; break;
+                        case 6: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                        case 7: if(StringUtils.isBlank(link.getVenta().getNombreDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getNombreDestinatario());} columnCount++; break;
+                        case 8: if(StringUtils.isBlank(link.getAbreviacionVenta())){cell.setCellValue("");}else{cell.setCellValue(link.getAbreviacionVenta());} columnCount++; break;
+                        case 9: if(StringUtils.isBlank(link.getVenta().getFacturaRemisionSicav())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getFacturaRemisionSicav());} columnCount++; break;
+                        case 10: if(StringUtils.isBlank(link.getVenta().getImporte())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getImporte());} columnCount++; break;
+                        case 11: cell.setCellValue(""); columnCount++; break;
+                        case 12: if(StringUtils.isBlank(link.getRecepcion().getAdicional())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getAdicional());} columnCount++; break;
+                        case 13: if(StringUtils.isBlank(link.getRecepcion().getTienda())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getTienda());} columnCount++; break;
+                        case 14: if(StringUtils.isBlank(link.getRecepcion().getRemision())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getRemision());} columnCount++; break;
+                        case 15: if(StringUtils.isBlank(link.getRecepcion().getFecha())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getFecha());} columnCount++; break;
+                        case 16: if(StringUtils.isBlank(link.getRecepcion().getNeto())){cell.setCellValue("");}else{cell.setCellValue(link.getRecepcion().getNeto());} columnCount++; break;
+                        case 17: cell.setCellValue(""); columnCount++; break;
+                        case 18: if(StringUtils.isBlank(link.getDiferencia())){cell.setCellValue("");}else{cell.setCellValue(link.getDiferencia());} columnCount++; break; 
+                        case 19: if(StringUtils.isBlank(link.getPorcentaje())){cell.setCellValue("");}else{cell.setCellValue(link.getPorcentaje());} columnCount++; break;
+                        case 20: cell.setCellValue(""); columnCount++; break;
+                        case 21: if(StringUtils.isBlank(link.getVenta().getDestinatario())){cell.setCellValue("");}else{cell.setCellValue(link.getVenta().getDestinatario());} columnCount++; break;
+                        case 22: cell.setCellValue(""); columnCount++; break;
+                        case 23: if(StringUtils.isBlank(link.getBusqueda())){cell.setCellValue("");}else{cell.setCellValue(link.getBusqueda());} columnCount++; break;
+                        default: break; 
+                    }
+                }
+            }
+            server.info("Añadiendolos al archivo Excel");
+            FileOutputStream outputStream = new FileOutputStream(currentExcelFilePath);
+            book.write(outputStream);
+            book.close();
+            outputStream.close();
+            server.info("Cerrado Excel");
         }
         
         public void processNotMatch() throws Exception
@@ -2250,6 +2483,9 @@ public class MyRobot implements IRobot {
             
             if(listIdSaleNotMatch != null && listRemoveIdSaleNotMatch != null && listIdSale != null)
             {
+                server.info("Total de la lista a eliminar: " + listRemoveIdSaleNotMatch.size());
+                server.info("Total de la lista que no tiene relacion LALA: " + listIdSaleNotMatch.size());
+                server.info("Total de la lista a eliminar que no se repite: " + listIdSale.size());
                 for(int b = 0; b < listIdSale.size(); b++)
                 {
                     /*if(listIdSaleNotMatch.contains(listIdSale.get(b)) == false)
@@ -2297,6 +2533,7 @@ public class MyRobot implements IRobot {
                 rowCount++;
                 Row row = sheet.createRow(rowCount);
                 columnCount = 0;
+                listRemoveIdSaleNotMatch.add(link.getVenta().getId());
                 listRemoveIdReceptionNotMatch.add(link.getRecepcion().getId());
                 for(String columnNameValue: columnNames)
                 {
@@ -2641,6 +2878,20 @@ public class MyRobot implements IRobot {
             return response;
 	}
         
+        public String hastPastFile() throws Exception {
+            String response = "no";
+            if(existPastInputFile == true)
+            {
+                response = "yes"; 
+            }
+            else if(existPastInputFile == false) 
+            {
+                response = "no"; 
+            }
+            
+            return response;
+        }
+        
 	/**
 	 * Action "moreData"
 	 * @return
@@ -2670,6 +2921,7 @@ public class MyRobot implements IRobot {
 	 * @throws Exception
 	 */
 	public void end() throws Exception {
+            
 	}
 	
 	/**

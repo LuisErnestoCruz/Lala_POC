@@ -17,6 +17,7 @@ public class Link {
     private String busqueda;
     private Sale venta;
     private Reception recepcion;
+    private Document documento;
 
     public int getId() {
         return id;
@@ -72,5 +73,13 @@ public class Link {
 
     public void setRecepcion(Reception recepcion) {
         this.recepcion = recepcion;
+    }
+
+    public Document getDocumento() {
+        return documento;
+    }
+
+    public void setDocumento(Document documento) {
+        this.documento = documento;
     }
 }

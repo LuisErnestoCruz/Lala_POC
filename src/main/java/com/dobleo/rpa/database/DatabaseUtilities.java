@@ -5,6 +5,7 @@
  */
 package com.dobleo.rpa.database;
 
+import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
 import com.dobleo.rpa.models.Link;
 import com.dobleo.rpa.models.Reception;
@@ -36,7 +37,9 @@ public class DatabaseUtilities {
     private Map<Integer, String> receptionsColumns;
     private Map<Integer, String> virtualReceptionsColumns;
     private Map<Integer, String> salesColumns;
+    private Map<Integer, String> branchColumns;
     private Map<Integer, String> virtualSalesColumns;
+    private Map<Integer, String> virtualTableColumns;
 
     public Map<Integer, String> getDocumentColumns() {
         return documentColumns;
@@ -76,6 +79,22 @@ public class DatabaseUtilities {
 
     public void setVirtualSalesColumns(Map<Integer, String> virtualSalesColumns) {
         this.virtualSalesColumns = virtualSalesColumns;
+    }
+
+    public Map<Integer, String> getVirtualTableColumns() {
+        return virtualTableColumns;
+    }
+
+    public void setVirtualTableColumns(Map<Integer, String> virtualTableColumns) {
+        this.virtualTableColumns = virtualTableColumns;
+    }
+
+    public Map<Integer, String> getBranchColumns() {
+        return branchColumns;
+    }
+
+    public void setBranchColumns(Map<Integer, String> branchColumns) {
+        this.branchColumns = branchColumns;
     }
     
     public static String createNewDatabase(IJidokaServer<?> server, String dbname) {
@@ -234,8 +253,10 @@ public class DatabaseUtilities {
                     case "documento": tableColumnInformation = documentTable(columnName); break;
                     case "recepciones": tableColumnInformation = receptionTable(columnName); break;
                     case "ventas": tableColumnInformation = saleTable(columnName); break;
+                    case "sucursales": tableColumnInformation = branchTable(columnName); break; 
                     case "virtual_recepciones": tableColumnInformation = virtualReceptionTable(columnName); break;
                     case "virtual_ventas": tableColumnInformation = virtualSaleTable(columnName); break;
+                    case "virtual_amarre": tableColumnInformation = virtualMoorageTable(columnName); break;
                     default: tableColumnInformation = ""; break;
                 }
             }
@@ -336,7 +357,8 @@ public class DatabaseUtilities {
                         case 8: columnParameters += " " + columns.get(a) + ","; break;
                         case 9: columnParameters += " " + columns.get(a) + ","; break;
                         case 10: columnParameters += " " + columns.get(a) + ","; break;
-                        case 11: columnParameters += " " + columns.get(a) + ""; break;
+                        case 11: columnParameters += " " + columns.get(a) + ","; break;
+                        case 12: columnParameters += " " + columns.get(a) + ""; break;
                         default: columnParameters += ","; break; 
                     }
                 }
@@ -500,14 +522,16 @@ public class DatabaseUtilities {
                 prepareStatement.setString(1, String.valueOf(reception.getIdFolio()));
                 prepareStatement.setString(2, reception.getMtvo());
                 prepareStatement.setString(3, reception.getTienda());
-                prepareStatement.setString(4, reception.getRecibo());
-                prepareStatement.setString(5, reception.getOrden());
-                prepareStatement.setString(6, reception.getAdicional());
-                prepareStatement.setString(7, reception.getRemision());
-                prepareStatement.setString(8, reception.getFecha());
-                prepareStatement.setString(9, reception.getValor());
-                prepareStatement.setString(10, reception.getIva());
-                prepareStatement.setString(11, reception.getNeto());
+                prepareStatement.setString(4, reception.getTienda2());
+                prepareStatement.setString(5, reception.getRecibo());
+                prepareStatement.setString(6, reception.getOrden());
+                prepareStatement.setString(7, reception.getAdicional());
+                prepareStatement.setString(8, reception.getRemision());
+                prepareStatement.setString(9, reception.getFecha());
+                prepareStatement.setString(10, reception.getFecha2());
+                prepareStatement.setString(11, reception.getValor());
+                prepareStatement.setString(12, reception.getIva());
+                prepareStatement.setString(13, reception.getNeto());
                 prepareStatement.addBatch();
                 times++;
                 
@@ -651,29 +675,208 @@ public class DatabaseUtilities {
             {
                 prepareStatement.setString(1, String.valueOf(sale.getIdFolio()));
                 prepareStatement.setString(2, sale.getFecha());
-                prepareStatement.setString(3, sale.getPedidoAdicional());
-                prepareStatement.setString(4, sale.getFactura());
-                prepareStatement.setString(5, sale.getFolio());
-                prepareStatement.setString(6, sale.getSolicitante());
-                prepareStatement.setString(7, sale.getCedis());
-                prepareStatement.setString(8, sale.getDestinatario());
-                prepareStatement.setString(9, sale.getNombreDestinatario());
-                prepareStatement.setString(10, sale.getFacturaRemisionSicav());
-                prepareStatement.setString(11, sale.getImporte());
-                prepareStatement.setString(12, sale.getCliente());
-                prepareStatement.setString(13, sale.getRefFact());
-                prepareStatement.setString(14, sale.getReferencia());
-                prepareStatement.setString(15, sale.getClvRef2());
-                prepareStatement.setString(16, sale.getClvRef3());
-                prepareStatement.setString(17, sale.getFechaDoc());
-                prepareStatement.setString(18, sale.getVencNeto());
-                if(StringUtils.isBlank(sale.getImpteMl())) { prepareStatement.setString(19, null);} else { prepareStatement.setString(19, sale.getImpteMl()); }
-                prepareStatement.setString(20, sale.getCe());
-                prepareStatement.setString(21, sale.getDiv());
+                prepareStatement.setString(3, sale.getFecha2());
+                prepareStatement.setString(4, sale.getPedidoAdicional());
+                prepareStatement.setString(5, sale.getFactura());
+                prepareStatement.setString(6, sale.getFolio());
+                prepareStatement.setString(7, sale.getSolicitante());
+                prepareStatement.setString(8, sale.getCedis());
+                prepareStatement.setString(9, sale.getDestinatario());
+                prepareStatement.setString(10, sale.getNombreDestinatario());
+                prepareStatement.setString(11, sale.getNombreDestinatario2());
+                prepareStatement.setString(12, sale.getFacturaRemisionSicav());
+                prepareStatement.setString(13, sale.getImporte());
+                prepareStatement.setString(14, sale.getCliente());
+                prepareStatement.setString(15, sale.getRefFact());
+                prepareStatement.setString(16, sale.getReferencia());
+                prepareStatement.setString(17, sale.getClvRef2());
+                prepareStatement.setString(18, sale.getClvRef3());
+                prepareStatement.setString(19, sale.getFechaDoc());
+                prepareStatement.setString(20, sale.getFechaDoc2());
+                prepareStatement.setString(21, sale.getVencNeto());
+                prepareStatement.setString(22, sale.getVencNeto2());
+                if(StringUtils.isBlank(sale.getImpteMl())) { prepareStatement.setString(23, null);} else { prepareStatement.setString(23, sale.getImpteMl()); }
+                prepareStatement.setString(24, sale.getCe());
+                prepareStatement.setString(25, sale.getDiv());
                 prepareStatement.addBatch();
                 times++;
                 
                 if(times % 1000 == 0 || times == listSale.size())
+                {
+                    prepareStatement.executeBatch();
+                }
+            }
+            
+            prepareStatement.executeBatch();
+            prepareStatement.close();
+            connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
+    public static void insertIntoBranch(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Branch> listBranch)
+    {
+        try
+        {
+            int times = 0;
+            String branchInformation = "";
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement prepareStatement = null;
+            //Statement statement = connection.createStatement(); 
+            StringBuilder sqlQuery = new StringBuilder();
+            sqlQuery.append("INSERT INTO sucursales");
+            sqlQuery.append(" (");
+            if(columns != null)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    sqlQuery.append(columns.get(a));
+                    sqlQuery.append(",");
+                }
+                sqlQuery.deleteCharAt(sqlQuery.lastIndexOf(","));
+            }
+            
+            sqlQuery.append(")"); 
+            sqlQuery.append(" VALUES");
+            sqlQuery.append(" (");
+            branchInformation = branchInformation(columns);
+            sqlQuery.append(branchInformation);
+            sqlQuery.append(");");
+            //server.info("Query Insert: " + sqlQuery.toString()); 
+            prepareStatement = connection.prepareStatement(sqlQuery.toString());
+            for(Branch branch: listBranch)
+            {
+                prepareStatement.setString(1, branch.getAnalista());
+                prepareStatement.setString(2, branch.getCliente());
+                prepareStatement.setString(3, branch.getZona());
+                prepareStatement.setString(4, branch.getCentro());
+                prepareStatement.setString(5, branch.getCedis());
+                prepareStatement.setString(6, branch.getSucursalSAP());
+                prepareStatement.setString(7, branch.getSucursalLALA());
+                prepareStatement.setString(8, branch.getCrLALA());
+                prepareStatement.setString(9, branch.getPlaza1());
+                prepareStatement.setString(10, branch.getCrOXXO());
+                prepareStatement.setString(11, branch.getPlaza2());
+                prepareStatement.setString(12, branch.getSucursalOXXO());
+                prepareStatement.setString(13, branch.getLiquidacion());
+                prepareStatement.setString(14, branch.getVentaCruzada());
+                prepareStatement.addBatch();
+                times++;
+                
+                if(times % 1000 == 0 || times == listBranch.size())
+                {
+                    prepareStatement.executeBatch();
+                }
+            }
+            
+            //prepareStatement.executeUpdate();
+            //statement.executeUpdate(sqlQuery.toString());
+            //statement.close();
+            prepareStatement.executeBatch();
+            prepareStatement.close();
+            connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
+    public static void insertIntoVirtualMoorage(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Link> listLink)
+    {
+        try
+        {
+            int times = 0;
+            String virtualMoorageInformation = "";
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement prepareStatement = null;
+            //Statement statement = connection.createStatement(); 
+            StringBuilder sqlQuery = new StringBuilder();
+            sqlQuery.append("INSERT INTO virtual_amarre");
+            sqlQuery.append(" (");
+            if(columns != null)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    sqlQuery.append(columns.get(a));
+                    sqlQuery.append(",");
+                }
+                sqlQuery.deleteCharAt(sqlQuery.lastIndexOf(","));
+            }
+            
+            sqlQuery.append(")"); 
+            sqlQuery.append(" VALUES");
+            sqlQuery.append(" (");
+            virtualMoorageInformation = virtualMoorageInformation(columns);
+            sqlQuery.append(virtualMoorageInformation);
+            sqlQuery.append(");");
+            //server.info("Query Insert: " + sqlQuery.toString()); 
+            prepareStatement = connection.prepareStatement(sqlQuery.toString());
+            for(Link link: listLink)
+            {
+                prepareStatement.setString(1, String.valueOf(link.getRecepcion().getId()));
+                prepareStatement.setString(2, String.valueOf(link.getRecepcion().getIdFolio()));
+                prepareStatement.setString(3, link.getRecepcion().getMtvo());
+                prepareStatement.setString(4, link.getRecepcion().getTienda());
+                prepareStatement.setString(5, link.getRecepcion().getTienda2());
+                prepareStatement.setString(6, link.getRecepcion().getRecibo());
+                prepareStatement.setString(7, link.getRecepcion().getOrden());
+                prepareStatement.setString(8, link.getRecepcion().getAdicional());
+                prepareStatement.setString(9, link.getRecepcion().getRemision());
+                prepareStatement.setString(10, link.getRecepcion().getFecha());
+                prepareStatement.setString(11, link.getRecepcion().getFecha2());
+                prepareStatement.setString(12, link.getRecepcion().getValor());
+                prepareStatement.setString(13, link.getRecepcion().getIva());
+                prepareStatement.setString(14, link.getRecepcion().getNeto());
+                prepareStatement.setString(15, String.valueOf(link.getVenta().getId()));
+                prepareStatement.setString(16, String.valueOf(link.getVenta().getIdFolio()));
+                prepareStatement.setString(17, link.getVenta().getFecha());
+                prepareStatement.setString(18, link.getVenta().getFecha2());
+                prepareStatement.setString(19, link.getVenta().getPedidoAdicional());
+                prepareStatement.setString(20, link.getVenta().getFactura());
+                prepareStatement.setString(21, link.getVenta().getFolio());
+                prepareStatement.setString(22, link.getVenta().getSolicitante());
+                prepareStatement.setString(23, link.getVenta().getCedis());
+                prepareStatement.setString(24, link.getVenta().getDestinatario());
+                prepareStatement.setString(25, link.getVenta().getNombreDestinatario());
+                prepareStatement.setString(26, link.getVenta().getNombreDestinatario2());
+                prepareStatement.setString(27, link.getVenta().getFacturaRemisionSicav());
+                prepareStatement.setString(28, link.getVenta().getImporte());
+                prepareStatement.setString(29, link.getVenta().getCliente());
+                prepareStatement.setString(30, link.getVenta().getRefFact());
+                prepareStatement.setString(31, link.getVenta().getReferencia());
+                prepareStatement.setString(32, link.getVenta().getClvRef2());
+                prepareStatement.setString(33, link.getVenta().getClvRef3());
+                prepareStatement.setString(34, link.getVenta().getFechaDoc());
+                prepareStatement.setString(35, link.getVenta().getFechaDoc2());
+                prepareStatement.setString(36, link.getVenta().getVencNeto());
+                prepareStatement.setString(37, link.getVenta().getVencNeto2());
+                prepareStatement.setString(38, link.getVenta().getImpteMl());
+                prepareStatement.setString(39, link.getVenta().getCe());
+                prepareStatement.setString(40, link.getVenta().getDiv());
+                prepareStatement.setString(41, String.valueOf(link.getDocumento().getId()));
+                prepareStatement.setString(42, link.getDocumento().getNombre());
+                prepareStatement.setString(43, link.getDocumento().getNumeroFolio());
+                prepareStatement.setString(44, link.getDocumento().getPorcentajeIncidencia());
+                prepareStatement.addBatch();
+                times++;
+                
+                if(times % 1000 == 0 || times == listLink.size())
                 {
                     prepareStatement.executeBatch();
                 }
@@ -764,7 +967,9 @@ public class DatabaseUtilities {
                         case 7: virtualReceptionInformation += "?,"; break;
                         case 8: virtualReceptionInformation += "?,"; break;
                         case 9: virtualReceptionInformation += "?,"; break;
-                        case 10: virtualReceptionInformation += "?"; break;
+                        case 10: virtualReceptionInformation += "?,"; break;
+                        case 11: virtualReceptionInformation += "?,"; break;
+                        case 12: virtualReceptionInformation += "?"; break;
                         default: virtualReceptionInformation += "?"; break;
                         
                     }
@@ -874,13 +1079,116 @@ public class DatabaseUtilities {
                         case 17: virtualSaleInformation += "?,"; break;
                         case 18: virtualSaleInformation += "?,"; break;
                         case 19: virtualSaleInformation += "?,"; break;
-                        case 20: virtualSaleInformation += "?"; break;
+                        case 20: virtualSaleInformation += "?,"; break;
+                        case 21: virtualSaleInformation += "?,"; break;
+                        case 22: virtualSaleInformation += "?,"; break;
+                        case 23: virtualSaleInformation += "?,"; break;
+                        case 24: virtualSaleInformation += "?"; break;
                         default: virtualSaleInformation += "?"; break;
                     }
                 }
             }
         }
         return virtualSaleInformation; 
+    }
+    
+    public static String virtualMoorageInformation(Map<Integer, String> columns)
+    {
+        String virtualMoorageInformation = "";
+        //if(columns != null && sale != null)
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: virtualMoorageInformation += "?,"; break;
+                        case 1: virtualMoorageInformation += "?,"; break;
+                        case 2: virtualMoorageInformation += "?,"; break;
+                        case 3: virtualMoorageInformation += "?,"; break;
+                        case 4: virtualMoorageInformation += "?,"; break;
+                        case 5: virtualMoorageInformation += "?,"; break; 
+                        case 6: virtualMoorageInformation += "?,"; break; 
+                        case 7: virtualMoorageInformation += "?,"; break;
+                        case 8: virtualMoorageInformation += "?,"; break;
+                        case 9: virtualMoorageInformation += "?,"; break;
+                        case 10: virtualMoorageInformation += "?,"; break;
+                        case 11: virtualMoorageInformation += "?,"; break;
+                        case 12: virtualMoorageInformation += "?,"; break; 
+                        case 13: virtualMoorageInformation += "?,"; break;
+                        case 14: virtualMoorageInformation += "?,"; break;
+                        case 15: virtualMoorageInformation += "?,"; break;
+                        case 16: virtualMoorageInformation += "?,"; break;
+                        case 17: virtualMoorageInformation += "?,"; break;
+                        case 18: virtualMoorageInformation += "?,"; break;
+                        case 19: virtualMoorageInformation += "?,"; break;
+                        case 20: virtualMoorageInformation += "?,"; break;
+                        case 21: virtualMoorageInformation += "?,"; break;
+                        case 22: virtualMoorageInformation += "?,"; break;
+                        case 23: virtualMoorageInformation += "?,"; break;
+                        case 24: virtualMoorageInformation += "?,"; break;
+                        case 25: virtualMoorageInformation += "?,"; break;
+                        case 26: virtualMoorageInformation += "?,"; break;
+                        case 27: virtualMoorageInformation += "?,"; break;
+                        case 28: virtualMoorageInformation += "?,"; break;
+                        case 29: virtualMoorageInformation += "?,"; break;
+                        case 30: virtualMoorageInformation += "?,"; break;
+                        case 31: virtualMoorageInformation += "?,"; break;
+                        case 32: virtualMoorageInformation += "?,"; break;
+                        case 33: virtualMoorageInformation += "?,"; break;
+                        case 34: virtualMoorageInformation += "?,"; break;
+                        case 35: virtualMoorageInformation += "?,"; break;
+                        case 36: virtualMoorageInformation += "?,"; break;
+                        case 37: virtualMoorageInformation += "?,"; break;
+                        case 38: virtualMoorageInformation += "?,"; break;
+                        case 39: virtualMoorageInformation += "?,"; break;
+                        case 40: virtualMoorageInformation += "?,"; break;
+                        case 41: virtualMoorageInformation += "?,"; break;
+                        case 42: virtualMoorageInformation += "?,"; break;
+                        case 43: virtualMoorageInformation += "?"; break;
+                        default: virtualMoorageInformation += "?"; break;
+                    }
+                }
+            }
+        }
+        return virtualMoorageInformation; 
+    }
+    
+    public static String branchInformation(Map<Integer, String> columns)
+    {
+        String saleInformation = "";
+        //if(columns != null && sale != null)
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: saleInformation += "NULL,"; break;
+                        case 1: saleInformation += "?,"; break;
+                        case 2: saleInformation += "?,"; break;
+                        case 3: saleInformation += "?,"; break;
+                        case 4: saleInformation += "?,"; break;
+                        case 5: saleInformation += "?,"; break;
+                        case 6: saleInformation += "?,"; break; 
+                        case 7: saleInformation += "?,"; break; 
+                        case 8: saleInformation += "?,"; break;
+                        case 9: saleInformation += "?,"; break;
+                        case 10: saleInformation += "?,"; break;
+                        case 11: saleInformation += "?,"; break;
+                        case 12: saleInformation += "?,"; break;
+                        case 13: saleInformation += "?,"; break;
+                        case 14: saleInformation += "?"; break;
+                        default: saleInformation += "?"; break;
+                    }
+                }
+            }
+        }
+        return saleInformation; 
     }
     
     public static String saleTable(Map<Integer, String> columns)
@@ -982,11 +1290,112 @@ public class DatabaseUtilities {
                         case 17: columnParameters += " " + columns.get(a) + ","; break;
                         case 18: columnParameters += " " + columns.get(a) + ","; break;
                         case 19: columnParameters += " " + columns.get(a) + ","; break;
-                        case 20: columnParameters += " " + columns.get(a) + ""; break;
+                        case 20: columnParameters += " " + columns.get(a) + ","; break;
+                        case 21: columnParameters += " " + columns.get(a) + ","; break;
+                        case 22: columnParameters += " " + columns.get(a) + ","; break;
+                        case 23: columnParameters += " " + columns.get(a) + ","; break;
+                        case 24: columnParameters += " " + columns.get(a) + ""; break;
                         default: columnParameters += ","; break; 
                     }
                 }
                 //columnParameters += " FOREIGN KEY(`idFolio`) REFERENCES `documento`(`id`)";
+            }
+        }
+        return columnParameters;
+    }
+    
+    public static String branchTable(Map<Integer, String> columns)
+    {
+        String columnParameters = ""; 
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: columnParameters += columns.get(a) + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"; break;
+                        case 1: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 2: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 3: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 4: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 5: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 6: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 7: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 8: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 9: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 10: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 11: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 12: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 13: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 14: columnParameters += " " + columns.get(a) + " TEXT"; break;
+                        default: columnParameters += " TEXT,"; break; 
+                    }
+                }
+            }
+        }
+        return columnParameters;
+    }
+    
+    public static String virtualMoorageTable(Map<Integer, String> columns)
+    {
+        String columnParameters = ""; 
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: columnParameters += " " + columns.get(a) + ","; break;
+                        case 1: columnParameters += " " + columns.get(a) + ","; break;
+                        case 2: columnParameters += " " + columns.get(a) + ","; break;
+                        case 3: columnParameters += " " + columns.get(a) + ","; break;
+                        case 4: columnParameters += " " + columns.get(a) + ","; break;
+                        case 5: columnParameters += " " + columns.get(a) + ","; break;
+                        case 6: columnParameters += " " + columns.get(a) + ","; break;
+                        case 7: columnParameters += " " + columns.get(a) + ","; break;
+                        case 8: columnParameters += " " + columns.get(a) + ","; break;
+                        case 9: columnParameters += " " + columns.get(a) + ","; break;
+                        case 10: columnParameters += " " + columns.get(a) + ","; break;
+                        case 11: columnParameters += " " + columns.get(a) + ","; break;
+                        case 12: columnParameters += " " + columns.get(a) + ","; break;
+                        case 13: columnParameters += " " + columns.get(a) + ","; break;
+                        case 14: columnParameters += " " + columns.get(a) + ","; break;
+                        case 15: columnParameters += " " + columns.get(a) + ","; break;
+                        case 16: columnParameters += " " + columns.get(a) + ","; break;
+                        case 17: columnParameters += " " + columns.get(a) + ","; break;
+                        case 18: columnParameters += " " + columns.get(a) + ","; break;
+                        case 19: columnParameters += " " + columns.get(a) + ","; break;
+                        case 20: columnParameters += " " + columns.get(a) + ","; break;
+                        case 21: columnParameters += " " + columns.get(a) + ","; break;
+                        case 22: columnParameters += " " + columns.get(a) + ","; break;
+                        case 23: columnParameters += " " + columns.get(a) + ","; break;
+                        case 24: columnParameters += " " + columns.get(a) + ","; break;
+                        case 25: columnParameters += " " + columns.get(a) + ","; break;
+                        case 26: columnParameters += " " + columns.get(a) + ","; break;
+                        case 27: columnParameters += " " + columns.get(a) + ","; break;
+                        case 28: columnParameters += " " + columns.get(a) + ","; break;
+                        case 29: columnParameters += " " + columns.get(a) + ","; break;
+                        case 30: columnParameters += " " + columns.get(a) + ","; break;
+                        case 31: columnParameters += " " + columns.get(a) + ","; break;
+                        case 32: columnParameters += " " + columns.get(a) + ","; break;
+                        case 33: columnParameters += " " + columns.get(a) + ","; break;
+                        case 34: columnParameters += " " + columns.get(a) + ","; break;
+                        case 35: columnParameters += " " + columns.get(a) + ","; break;
+                        case 36: columnParameters += " " + columns.get(a) + ","; break;
+                        case 37: columnParameters += " " + columns.get(a) + ","; break;
+                        case 38: columnParameters += " " + columns.get(a) + ","; break;
+                        case 39: columnParameters += " " + columns.get(a) + ","; break;
+                        case 40: columnParameters += " " + columns.get(a) + ","; break;
+                        case 41: columnParameters += " " + columns.get(a) + ","; break;
+                        case 42: columnParameters += " " + columns.get(a) + ","; break;
+                        case 43: columnParameters += " " + columns.get(a) + ""; break;
+                        default: columnParameters += ","; break; 
+                    }
+                }
             }
         }
         return columnParameters;
@@ -1028,6 +1437,193 @@ public class DatabaseUtilities {
             server.error(sw.toString());
         }
         return id;
+    }
+    
+    public ArrayList<Link> joinByRemissionAndAdditionalOrder(IJidokaServer<?> server, String url, int idFolio)
+    {
+        ArrayList<Link> listResult = new ArrayList<Link>(); 
+        try
+        {
+            Reception reception = new Reception();
+            Sale sale = new Sale();
+            Link link = new Link();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = null;
+            sqlQuery = "SELECT * FROM(SELECT * FROM(SELECT * FROM(SELECT  " +
+            "ventas.id AS idVenta, " +
+            "ventas.idFolio AS ventas_idFolio, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.idFolio AS recepciones_idFolio, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "recepciones.tienda2 AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
+            "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
+            "GROUP BY idRecepcion) " +
+            "GROUP BY idVenta " +
+            " " +
+            "UNION  " +
+            " " +
+            "SELECT * FROM(SELECT  " +
+            "ventas.id AS idVenta, " +
+            "ventas.idFolio AS ventas_idFolio, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion, " +
+            "recepciones.idFolio AS recepciones_idFolio, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "recepciones.tienda2 AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
+            "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "GROUP BY idRecepcion) " +
+            "GROUP BY idVenta " +
+            " " +
+            "UNION  " +
+            " " +
+            "SELECT * FROM(SELECT  " +
+            "ventas.id AS idVenta, " +
+            "ventas.idFolio AS ventas_idFolio, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, " +
+            "substr(ventas.factura_remisionSicav, 0, 4) AS ventas_factura, " +
+            "substr(ventas.factura_remisionSicav, 4, LENGTH(ventas.factura_remisionSicav)) AS ventas_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "(ventas.importe - ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, " +
+            "(ventas.importe + ROUND(ventas.importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3, " +
+            "recepciones.id AS idRecepcion,  " +
+            "recepciones.idFolio AS recepciones_idFolio, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "recepciones.tienda2 AS recepciones_tienda2, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.neto AS recepciones_neto,  " +
+            "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
+            "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "GROUP BY idRecepcion) " +
+            "GROUP BY idVenta " +
+            ") " +
+            "GROUP BY idRecepcion " +
+            ") " +
+            "GROUP BY idVenta " +
+            "ORDER BY ventas_destinatario";
+            //server.info("Query:" + sqlQuery);
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, idFolio);
+            preparedStatement.setInt(2, idFolio);
+            preparedStatement.setInt(3, idFolio);
+            preparedStatement.setInt(4, idFolio);
+            preparedStatement.setInt(5, idFolio);
+            preparedStatement.setInt(6, idFolio);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next())
+            {
+                link = new Link(); 
+                reception = new Reception();
+                sale = new Sale();
+                sale.setId(resultSet.getInt("idVenta"));
+                sale.setFecha(resultSet.getString("ventas_fecha"));
+                sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
+                sale.setFactura(resultSet.getString("ventas_factura"));
+                sale.setFolio(resultSet.getString("ventas_folio"));
+                sale.setSolicitante(resultSet.getString("ventas_solicitante"));
+                sale.setCedis(resultSet.getString("ventas_cedis"));
+                sale.setDestinatario(resultSet.getString("ventas_destinatario"));
+                sale.setNombreDestinatario(resultSet.getString("ventas_nombre_destinatario"));
+                sale.setFacturaRemisionSicav(resultSet.getString("ventas_remisionSicav"));
+                sale.setImporte(resultSet.getString("ventas_importe"));
+                reception.setId(resultSet.getInt("idRecepcion"));
+                reception.setAdicional(resultSet.getString("recepciones_adicional"));
+                reception.setTienda(resultSet.getString("recepciones_tienda"));
+                reception.setRemision(resultSet.getString("recepciones_remision"));
+                reception.setFecha(resultSet.getString("recepciones_fecha"));
+                reception.setNeto(resultSet.getString("recepciones_neto"));
+                link.setAbreviacionVenta(resultSet.getString("ventas_abreviacion_factura"));
+                link.setDiferencia(resultSet.getString("amarre_diferencia"));
+                link.setPorcentaje(resultSet.getString("amarre_porcentaje"));
+                link.setBusqueda("Remision - Pedido Adicional");
+                link.setRecepcion(reception);
+                link.setVenta(sale);
+                listResult.add(link);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listResult = new ArrayList<Link>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listResult;
     }
     
     public ArrayList<Link> searchByStoreDateAmount(IJidokaServer<?> server, String url, int idFolio)
@@ -1099,10 +1695,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursales.sucursal_LALA) AND (recepciones_tienda = sucursales.sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "ORDER BY ventas_destinatario";
@@ -1116,6 +1715,7 @@ public class DatabaseUtilities {
                 link = new Link(); 
                 reception = new Reception();
                 sale = new Sale();
+                sale.setId(resultSet.getInt("idVenta"));
                 sale.setFecha(resultSet.getString("ventas_fecha"));
                 sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
                 sale.setFactura(resultSet.getString("ventas_factura"));
@@ -1126,6 +1726,7 @@ public class DatabaseUtilities {
                 sale.setNombreDestinatario(resultSet.getString("ventas_nombre_destinatario"));
                 sale.setFacturaRemisionSicav(resultSet.getString("ventas_remisionSicav"));
                 sale.setImporte(resultSet.getString("ventas_importe"));
+                reception.setId(resultSet.getInt("idRecepcion"));
                 reception.setAdicional(resultSet.getString("recepciones_adicional"));
                 reception.setTienda(resultSet.getString("recepciones_tienda"));
                 reception.setRemision(resultSet.getString("recepciones_remision"));
@@ -1285,9 +1886,12 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " + 
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -1319,10 +1923,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -1353,10 +1960,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -1387,10 +1997,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursales.sucursal_LALA) AND (recepciones_tienda = sucursales.sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -1585,9 +2198,12 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " + 
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -1619,10 +2235,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " + 
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -1653,10 +2272,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -1687,10 +2309,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursales.sucursal_LALA) AND (recepciones_tienda = sucursales.sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -1787,9 +2412,12 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -1821,10 +2449,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -1855,10 +2486,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -1889,10 +2523,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursal_LALA) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -1939,9 +2576,12 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -1973,10 +2613,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -2007,10 +2650,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -2041,10 +2687,13 @@ public class DatabaseUtilities {
             "recepciones.valor AS recepciones_valor, " +
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursal_LALA) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -2054,7 +2703,8 @@ public class DatabaseUtilities {
             ") " +
             ") " +
             "JOIN documento ON documento.id = idFolio " +
-            ")";
+            ")" +
+            "LEFT JOIN sucursales ON (sucursales.sucursal_LALA = ventas_nombre_destinatario)";
             
             index = sqlSubQuery2.indexOf("?");
             while(index >= 0) {
@@ -2063,7 +2713,7 @@ public class DatabaseUtilities {
             }
             
             sqlQuery += sqlSubQuery2;
-            sqlQuery += "WHERE (recepciones_remision = ventas_remisionSicav) OR (recepciones_adicional = ventas_pedido_adicional) OR (((recepciones_tienda2 = ventas_nombre_destinatario2)) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3))";
+            sqlQuery += "WHERE (recepciones_remision = ventas_remisionSicav) OR (recepciones_adicional = ventas_pedido_adicional) OR (((ventas_nombre_destinatario = sucursal_LALA)) AND ((recepciones_tienda = sucursal_OXXO)) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3))";
             sqlQuery += "GROUP BY ventas_id )";
             sqlQuery += "ORDER BY ventas_destinatario";
             
@@ -2341,6 +2991,165 @@ public class DatabaseUtilities {
         return listResult;
     }
     
+    public ArrayList<Link> crossVirtualTable(IJidokaServer<?> server, String url, int firstIdFolio, int secondIdFolio)
+    {
+        ArrayList<Link> listResult = new ArrayList<Link>(); 
+        try
+        {
+            int index = 0; 
+            int times = 0; 
+            Link link = new Link();
+            Reception reception = new Reception();
+            Sale sale = new Sale();
+            Document document = new Document();
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement =  null;
+            String sqlQuery = "";
+            String sqlSubQuery1 = ""; 
+            String sqlSubQuery2 = "";
+            sqlSubQuery1 = "SELECT * FROM(";
+            sqlSubQuery1 += "SELECT  " +
+            "recepciones.id AS recepciones_id, " +
+            "recepciones.idFolio AS recepciones_idFolio, " +
+            "recepciones.mvto AS recepciones_mvto, " +
+            "recepciones.tienda AS recepciones_tienda, " +
+            "recepciones.tienda2 AS recepciones_tienda2, " +
+            "recepciones.recibo AS recepciones_recibo, " +
+            "recepciones.orden AS recepciones_orden, " +
+            "recepciones.adicional AS recepciones_adicional, " +
+            "recepciones.remision AS recepciones_remision, " +
+            "recepciones.fecha AS recepciones_fecha, " +
+            "recepciones.fecha2 AS recepciones_fecha2, " +
+            "recepciones.valor AS recepciones_valor, " +
+            "recepciones.iva AS recepciones_iva, " +
+            "recepciones.neto AS recepciones_neto, " +
+            "documento.id AS documento_id, " +
+            "documento.nombre AS documento_nombre, " +
+            "documento.numero_folio AS documento_numero_folio, " +
+            "documento.porcentaje_incidencia AS documento_porcentaje_incidencia " +
+            "FROM recepciones " +
+            "JOIN documento ON documento.id = recepciones.idFolio " +
+            "WHERE recepciones.idFolio = ?)";
+            sqlQuery += sqlSubQuery1;
+            
+            sqlQuery += "CROSS JOIN";
+            
+            sqlSubQuery2 = "(SELECT  " +
+            "ventas.id AS ventas_id, " +
+            "ventas.idFolio AS ventas_idFolio, " +
+            "ventas.fecha AS ventas_fecha, " +
+            "ventas.fecha2 AS ventas_fecha2, " +
+            "ventas.pedido_adicional AS ventas_pedido_adicional, " +
+            "ventas.factura AS ventas_factura, " +
+            "ventas.folio AS ventas_folio, " +
+            "ventas.solicitante AS ventas_solicitante, " +
+            "ventas.cedis AS ventas_cedis, " +
+            "ventas.destinatario AS ventas_destinatario, " +
+            "ventas.nombre_destinatario AS ventas_nombre_destinatario, " +
+            "ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, " +
+            "ventas.factura_remisionSicav AS ventas_factura_remisionSicav, " +
+            "ventas.importe AS ventas_importe, " +
+            "ventas.cliente AS ventas_cliente, " +
+            "ventas.ref_fact AS ventas_ref_fact, " +
+            "ventas.referencia AS ventas_referencia, " +
+            "ventas.clv_ref2 AS ventas_clv_ref2, " +
+            "ventas.clv_ref3 AS ventas_clv_ref3, " +
+            "ventas.fecha_doc AS ventas_fecha_doc, " +
+            "ventas.fecha_doc2 AS ventas_fecha_doc2, " +
+            "ventas.venc_neto AS ventas_venc_neto, " +
+            "ventas.venc_neto2 AS ventas_venc_neto2, " +
+            "ventas.impteML AS ventas_impteML, " +
+            "ventas.ce AS ventas_ce, " +
+            "ventas.div AS ventas_div " +
+            "FROM ventas " +
+            "WHERE ventas.idFolio = ?)";
+            
+            sqlQuery += sqlSubQuery2;
+            
+            
+            
+            preparedStatement = connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, firstIdFolio);
+            preparedStatement.setInt(2, secondIdFolio);
+                
+            
+            ResultSet resultSet = preparedStatement.executeQuery();
+           
+            while(resultSet.next())
+            {
+                link = new Link(); 
+                document = new Document();
+                reception = new Reception();
+                sale = new Sale();
+                sale.setId(resultSet.getInt("ventas_id"));
+                sale.setIdFolio(resultSet.getInt("ventas_idFolio"));
+                sale.setFecha(resultSet.getString("ventas_fecha"));
+                sale.setFecha2(resultSet.getString("ventas_fecha2"));
+                sale.setPedidoAdicional(resultSet.getString("ventas_pedido_adicional"));
+                sale.setFactura(resultSet.getString("ventas_factura"));
+                sale.setFolio(resultSet.getString("ventas_folio"));
+                sale.setSolicitante(resultSet.getString("ventas_solicitante"));
+                sale.setCedis(resultSet.getString("ventas_cedis"));
+                sale.setDestinatario(resultSet.getString("ventas_destinatario"));
+                sale.setNombreDestinatario(resultSet.getString("ventas_nombre_destinatario"));
+                sale.setNombreDestinatario2(resultSet.getString("ventas_nombre_destinatario2"));
+                sale.setFacturaRemisionSicav(resultSet.getString("ventas_factura_remisionSicav"));
+                sale.setImporte(resultSet.getString("ventas_importe"));
+                sale.setCliente(resultSet.getString("ventas_cliente"));
+                sale.setRefFact(resultSet.getString("ventas_ref_fact"));
+                sale.setReferencia(resultSet.getString("ventas_referencia"));
+                sale.setClvRef2(resultSet.getString("ventas_clv_ref2"));
+                sale.setClvRef3(resultSet.getString("ventas_clv_ref3"));
+                sale.setFechaDoc(resultSet.getString("ventas_fecha_doc"));
+                sale.setFechaDoc2(resultSet.getString("ventas_fecha_doc2"));
+                sale.setVencNeto(resultSet.getString("ventas_venc_neto"));
+                sale.setVencNeto2(resultSet.getString("ventas_venc_neto2"));
+                sale.setImpteMl(resultSet.getString("ventas_impteML"));
+                sale.setCe(resultSet.getString("ventas_ce"));
+                sale.setDiv(resultSet.getString("ventas_div"));
+                
+                reception.setId(resultSet.getInt("recepciones_id"));
+                reception.setIdFolio(resultSet.getInt("recepciones_idFolio"));
+                reception.setMtvo(resultSet.getString("recepciones_mvto"));
+                reception.setTienda(resultSet.getString("recepciones_tienda"));
+                reception.setTienda2(resultSet.getString("recepciones_tienda2"));
+                reception.setRecibo(resultSet.getString("recepciones_recibo"));
+                reception.setOrden(resultSet.getString("recepciones_orden"));
+                reception.setAdicional(resultSet.getString("recepciones_adicional"));
+                reception.setRemision(resultSet.getString("recepciones_remision"));
+                reception.setFecha(resultSet.getString("recepciones_fecha"));
+                reception.setFecha2(resultSet.getString("recepciones_fecha2"));
+                reception.setValor(resultSet.getString("recepciones_valor"));
+                reception.setIva(resultSet.getString("recepciones_iva"));
+                reception.setNeto(resultSet.getString("recepciones_neto"));
+                
+                document.setId(resultSet.getInt("documento_id"));
+                document.setNumeroFolio(resultSet.getString("documento_numero_folio"));
+                document.setNombre(resultSet.getString("documento_nombre"));
+                document.setPorcentajeIncidencia(resultSet.getString("documento_porcentaje_incidencia"));
+                
+                link.setDocumento(document);
+                link.setVenta(sale);
+                link.setRecepcion(reception);
+                listResult.add(link);
+            }
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listResult = new ArrayList<Link>();
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listResult;
+    }
+    
     public ArrayList<Reception> getFinalReceptionsNotMatch(IJidokaServer<?> server, String url, ArrayList listIdReception)
     {
         ArrayList<Reception> listReceptionResult = new ArrayList<Reception>(); 
@@ -2444,7 +3253,9 @@ public class DatabaseUtilities {
             "recepciones_valor, " +
             "recepciones_neto, " +
             "ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, " +
-            "CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje " +
+            "CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
+            "sucursales.sucursal_LALA AS sucursal_LALA, " +
+            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
             "FROM (";
             sqlSubQuery1.append("SELECT * FROM(SELECT " +
             "ventas.id AS ventas_id, " +
@@ -2507,7 +3318,8 @@ public class DatabaseUtilities {
             sqlQuery += sqlSubQuery2.toString();
             
             sqlQuery += ")";
-            sqlQuery += "WHERE (ventas_remisionSicav = recepciones_remision) OR (ventas_pedido_adicional = recepciones_adicional) OR ((ventas_remisionSicav LIKE '%' || recepciones_remision) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) OR ((recepciones_fecha3 <= ventas_fecha3) AND (recepciones_tienda2 = ventas_nombre_destinatario2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))"; 
+            sqlQuery += "LEFT JOIN sucursales ON sucursales.sucursal_LALA = ventas_nombre_destinatario ";
+            sqlQuery += "WHERE (ventas_remisionSicav = recepciones_remision) OR (ventas_pedido_adicional = recepciones_adicional) OR ((ventas_remisionSicav LIKE '%' || recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) OR ((recepciones_fecha3 <= ventas_fecha3) AND (ventas_nombre_destinatario = sucursal_LALA) AND (recepciones_tienda = sucursal_OXXO) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))"; 
             
             preparedStatement = connection.prepareStatement(sqlQuery);
             preparedStatement.setInt(1, currentIdFolio);
@@ -2602,14 +3414,16 @@ public class DatabaseUtilities {
         virtualReceptionsColumns.put(0, "idFolio");
         virtualReceptionsColumns.put(1, "mvto");
         virtualReceptionsColumns.put(2, "tienda");
-        virtualReceptionsColumns.put(3, "recibo");
-        virtualReceptionsColumns.put(4, "orden");
-        virtualReceptionsColumns.put(5, "adicional");
-        virtualReceptionsColumns.put(6, "remision");
-        virtualReceptionsColumns.put(7, "fecha");
-        virtualReceptionsColumns.put(8, "valor");
-        virtualReceptionsColumns.put(9, "iva");
-        virtualReceptionsColumns.put(10, "neto");
+        virtualReceptionsColumns.put(3, "tienda2");
+        virtualReceptionsColumns.put(4, "recibo");
+        virtualReceptionsColumns.put(5, "orden");
+        virtualReceptionsColumns.put(6, "adicional");
+        virtualReceptionsColumns.put(7, "remision");
+        virtualReceptionsColumns.put(8, "fecha");
+        virtualReceptionsColumns.put(9, "fecha2");
+        virtualReceptionsColumns.put(10, "valor");
+        virtualReceptionsColumns.put(11, "iva");
+        virtualReceptionsColumns.put(12, "neto");
     }
     
     public void saleTableColumns()
@@ -2643,7 +3457,29 @@ public class DatabaseUtilities {
         salesColumns.put(23, "impteML");
         salesColumns.put(24, "ce");
         salesColumns.put(25, "div");
-    } 
+    }
+    
+    public void branchTableColumns()
+    {
+        branchColumns = null;
+        branchColumns = new HashMap<Integer, String>();
+        
+        branchColumns.put(0, "id");
+        branchColumns.put(1, "analista");
+        branchColumns.put(2, "cliente");
+        branchColumns.put(3, "zona");
+        branchColumns.put(4, "centro");
+        branchColumns.put(5, "cedis");
+        branchColumns.put(6, "sucursal_SAP");
+        branchColumns.put(7, "sucursal_LALA");
+        branchColumns.put(8, "cr_LALA");
+        branchColumns.put(9, "plaza1");
+        branchColumns.put(10, "cr_OXXO");
+        branchColumns.put(11, "plaza2");
+        branchColumns.put(12, "sucursal_OXXO");
+        branchColumns.put(13, "liquidacion");
+        branchColumns.put(14, "venta_cruzada");
+    }
     
     public void virtualSaleTableColumns()
     {
@@ -2652,24 +3488,79 @@ public class DatabaseUtilities {
         
         virtualSalesColumns.put(0, "idFolio");
         virtualSalesColumns.put(1, "fecha");
-        virtualSalesColumns.put(2, "pedido_adicional");
-        virtualSalesColumns.put(3, "factura");
-        virtualSalesColumns.put(4, "folio");
-        virtualSalesColumns.put(5, "solicitante");
-        virtualSalesColumns.put(6, "cedis");
-        virtualSalesColumns.put(7, "destinatario");
-        virtualSalesColumns.put(8, "nombre_destinatario");
-        virtualSalesColumns.put(9, "factura_remisionSicav");
-        virtualSalesColumns.put(10, "importe");
-        virtualSalesColumns.put(11, "cliente");
-        virtualSalesColumns.put(12, "ref_fact");
-        virtualSalesColumns.put(13, "referencia");
-        virtualSalesColumns.put(14, "clv_ref2");
-        virtualSalesColumns.put(15, "clv_ref3");
-        virtualSalesColumns.put(16, "fecha_doc");
-        virtualSalesColumns.put(17, "venc_neto");
-        virtualSalesColumns.put(18, "impteML");
-        virtualSalesColumns.put(19, "ce");
-        virtualSalesColumns.put(20, "div");
+        virtualSalesColumns.put(2, "fecha2");
+        virtualSalesColumns.put(3, "pedido_adicional");
+        virtualSalesColumns.put(4, "factura");
+        virtualSalesColumns.put(5, "folio");
+        virtualSalesColumns.put(6, "solicitante");
+        virtualSalesColumns.put(7, "cedis");
+        virtualSalesColumns.put(8, "destinatario");
+        virtualSalesColumns.put(9, "nombre_destinatario");
+        virtualSalesColumns.put(10, "nombre_destinatario2");
+        virtualSalesColumns.put(11, "factura_remisionSicav");
+        virtualSalesColumns.put(12, "importe");
+        virtualSalesColumns.put(13, "cliente");
+        virtualSalesColumns.put(14, "ref_fact");
+        virtualSalesColumns.put(15, "referencia");
+        virtualSalesColumns.put(16, "clv_ref2");
+        virtualSalesColumns.put(17, "clv_ref3");
+        virtualSalesColumns.put(18, "fecha_doc");
+        virtualSalesColumns.put(19, "fecha_doc2");
+        virtualSalesColumns.put(20, "venc_neto");
+        virtualSalesColumns.put(21, "venc_neto2");
+        virtualSalesColumns.put(22, "impteML");
+        virtualSalesColumns.put(23, "ce");
+        virtualSalesColumns.put(24, "div");
+    }
+    
+    public void virtualTableColumns()
+    {
+        virtualTableColumns = null;
+        virtualTableColumns = new HashMap<Integer, String>();
+        
+        virtualTableColumns.put(0, "recepciones_id");
+        virtualTableColumns.put(1, "recepciones_idFolio");
+        virtualTableColumns.put(2, "recepciones_mvto");
+        virtualTableColumns.put(3, "recepciones_tienda");
+        virtualTableColumns.put(4, "recepciones_tienda2");
+        virtualTableColumns.put(5, "recepciones_recibo");
+        virtualTableColumns.put(6, "recepciones_orden");
+        virtualTableColumns.put(7, "recepciones_adicional");
+        virtualTableColumns.put(8, "recepciones_remision");
+        virtualTableColumns.put(9, "recepciones_fecha");
+        virtualTableColumns.put(10, "recepciones_fecha2");
+        virtualTableColumns.put(11, "recepciones_valor");
+        virtualTableColumns.put(12, "recepciones_iva");
+        virtualTableColumns.put(13, "recepciones_neto");
+        virtualTableColumns.put(14, "ventas_id");
+        virtualTableColumns.put(15, "ventas_idFolio");
+        virtualTableColumns.put(16, "ventas_fecha");
+        virtualTableColumns.put(17, "ventas_fecha2");
+        virtualTableColumns.put(18, "ventas_pedido_adicional");
+        virtualTableColumns.put(19, "ventas_factura");
+        virtualTableColumns.put(20, "ventas_folio");
+        virtualTableColumns.put(21, "ventas_solicitante");
+        virtualTableColumns.put(22, "ventas_cedis");
+        virtualTableColumns.put(23, "ventas_destinatario");
+        virtualTableColumns.put(24, "ventas_nombre_destinatario");
+        virtualTableColumns.put(25, "ventas_nombre_destinatario2");
+        virtualTableColumns.put(26, "ventas_factura_remisionSicav");
+        virtualTableColumns.put(27, "ventas_importe");
+        virtualTableColumns.put(28, "ventas_cliente");
+        virtualTableColumns.put(29, "ventas_ref_fact");
+        virtualTableColumns.put(30, "ventas_referencia");
+        virtualTableColumns.put(31, "ventas_clv_ref2");
+        virtualTableColumns.put(32, "ventas_clv_ref3");
+        virtualTableColumns.put(33, "ventas_fecha_doc");
+        virtualTableColumns.put(34, "ventas_fecha_doc2");
+        virtualTableColumns.put(35, "ventas_venc_neto");
+        virtualTableColumns.put(36, "ventas_venc_neto2");
+        virtualTableColumns.put(37, "ventas_impteML");
+        virtualTableColumns.put(38, "ventas_ce");
+        virtualTableColumns.put(39, "ventas_div");
+        virtualTableColumns.put(40, "documento_id");
+        virtualTableColumns.put(41, "documento_nombre");
+        virtualTableColumns.put(42, "documento_numero_folio");
+        virtualTableColumns.put(43, "documento_porcentaje_incidencia");
     }
 }
