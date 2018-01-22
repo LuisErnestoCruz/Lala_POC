@@ -424,6 +424,8 @@ public class MyRobot implements IRobot {
             int columnIndex = 0;
             ArrayList<Branch> listBranch = new ArrayList<Branch>(); 
             String cellValue = null;
+            String sucursalLALA = "";
+            String sucursalOXXO = ""; 
             Reception reception = new Reception();
             Branch branch = new Branch(); 
             Workbook book = null;
@@ -494,13 +496,49 @@ public class MyRobot implements IRobot {
                                 case 3: if(StringUtils.isBlank(cellValue)){branch.setCentro("");}else{branch.setCentro(cellValue);} columnIndex++; break;
                                 case 4: if(StringUtils.isBlank(cellValue)){branch.setCedis("");}else{branch.setCedis(cellValue);} columnIndex++; break;
                                 case 5: if(StringUtils.isBlank(cellValue)){branch.setSucursalSAP("");}else{branch.setSucursalSAP(cellValue);} columnIndex++; break;
-                                case 6: if(StringUtils.isBlank(cellValue)){branch.setSucursalLALA("");}else{branch.setSucursalLALA(cellValue);} columnIndex++; break;
+                                case 6: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        branch.setSucursalLALA(""); 
+                                        branch.setSucursalLALA2("");}
+                                    else
+                                    {
+                                        branch.setSucursalLALA(cellValue); 
+                                        
+                                        sucursalLALA = ""; 
+                                        sucursalLALA = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
+                                        sucursalLALA = sucursalLALA.replace(" ", "");
+                                        sucursalLALA = StringUtils.stripAccents(sucursalLALA); 
+                                        sucursalLALA = sucursalLALA.replaceAll("[^a-zA-Z0-9]+", "");
+                                        sucursalLALA = sucursalLALA.toLowerCase();
+                                        branch.setSucursalLALA2(sucursalLALA);
+                                    } 
+                                    columnIndex++; 
+                                    break;
                                 case 7: columnIndex++; break;
                                 case 8: if(StringUtils.isBlank(cellValue)){branch.setCrLALA("");}else{branch.setCrLALA(cellValue);} columnIndex++; break;
                                 case 9: if(StringUtils.isBlank(cellValue)){branch.setPlaza1("");}else{branch.setPlaza1(cellValue);} columnIndex++; break; 
                                 case 10: if(StringUtils.isBlank(cellValue)){branch.setCrOXXO("");}else{branch.setCrOXXO(cellValue);} columnIndex++; break;
                                 case 11: if(StringUtils.isBlank(cellValue)){branch.setPlaza2("");}else{branch.setPlaza2(cellValue);} columnIndex++; break;
-                                case 12: if(StringUtils.isBlank(cellValue)){branch.setSucursalOXXO("");}else{branch.setSucursalOXXO(cellValue);} columnIndex++; break;
+                                case 12: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        branch.setSucursalOXXO("");
+                                        branch.setSucursalOXXO2("");
+                                    }
+                                    else
+                                    {
+                                        branch.setSucursalOXXO(cellValue);
+                                        sucursalOXXO = ""; 
+                                        sucursalOXXO = cellValue.substring(cellValue.indexOf("-")+1, cellValue.length());
+                                        sucursalOXXO = sucursalOXXO.replace(" ", "");
+                                        sucursalOXXO = StringUtils.stripAccents(sucursalOXXO); 
+                                        sucursalOXXO = sucursalOXXO.replaceAll("[^a-zA-Z0-9]+", "");
+                                        sucursalOXXO = sucursalOXXO.toLowerCase();
+                                        branch.setSucursalOXXO2(sucursalOXXO);
+                                    } 
+                                    columnIndex++; 
+                                    break;
                                 case 13: if(StringUtils.isBlank(cellValue)){branch.setLiquidacion("");}else{branch.setLiquidacion(cellValue);} columnIndex++; break;
                                 case 14: columnIndex++; break;
                                 case 15: if(StringUtils.isBlank(cellValue)){branch.setVentaCruzada("");}else{branch.setVentaCruzada(cellValue);} columnIndex++; break;
@@ -2019,7 +2057,7 @@ public class MyRobot implements IRobot {
             int columnCount = 0;
             rowColumn = linkSheet.createRow(rowCount);
             server.info("Read All Filled Row From Sheet: " + linkSheet.getSheetName());
-            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio);
+            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio, listFirstJoin);
             server.info("Total de Link Elementos: " + listTenPoint.size());
             //server.info("Total de Filas: " + linkSheet.getLastRowNum());
             server.info("Escribiendo Datos del Punto 10");
@@ -2107,8 +2145,8 @@ public class MyRobot implements IRobot {
             int columnCount = 0;
             rowColumn = sheet.createRow(rowCount);
             server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
-            listSale = databaseUtilities.getSalesNotMatch(server, databasePath, idFolio);
-            listReception = databaseUtilities.getReceptionsNotMatch(server, databasePath, idFolio);
+            listSale = databaseUtilities.getSalesNotMatch(server, databasePath, idFolio, listFirstJoin);
+            //listReception = databaseUtilities.getReceptionsNotMatch(server, databasePath, idFolio, listFirstJoin);
             server.info("Total de Ventas que no tienen una relacion: " + listSale.size());
             server.info("Total de Ventas reportadas por Tienda que no tienen relacion: " + listReception.size()); 
             //server.info("Total de Filas: " + linkSheet.getLastRowNum());
@@ -2226,7 +2264,7 @@ public class MyRobot implements IRobot {
             int columnCount = 0;
             rowColumn = sheet.createRow(rowCount);
             server.info("Read All Filled Row From Sheet: " + sheet.getSheetName());
-            listReception = databaseUtilities.getReceptionsNotMatch(server, databasePath, idFolio);
+            listReception = databaseUtilities.getReceptionsNotMatch(server, databasePath, idFolio, listFirstJoin);
             server.info("Total de Ventas reportadas por Tienda que no tienen relacion: " + listReception.size()); 
             //server.info("Total de Filas: " + linkSheet.getLastRowNum());
             server.info("Escribiendo Ventas que no tienen relacion para el Punto 11");
@@ -2467,6 +2505,8 @@ public class MyRobot implements IRobot {
             Workbook book;
             Sheet sheet;
             Row rowColumn = null;
+            server.info("Total Id Reception Not Match que quedan por procesar antes de eliminar: " + listIdReceptionNotMatch.size()); 
+            server.info("Total de Id a eliminar que no se repiten: " + listIdReception.size()); 
             if(listIdReceptionNotMatch != null && listRemoveIdReceptionNotMatch != null && listIdReception != null)
             {
                 for(int a = 0; a < listIdReception.size(); a++)
@@ -2475,8 +2515,10 @@ public class MyRobot implements IRobot {
                     {
                         server.info("Esta recepcion no se encuentra en la lista pero en la relacion si: " + listIdReception.get(a));
                     }*/
-                    
-                    listIdReceptionNotMatch.remove(listIdReception.get(a));
+                    if(listIdReceptionNotMatch.contains(listIdReception.get(a)) == true)
+                    {
+                        listIdReceptionNotMatch.remove(listIdReception.get(a));
+                    }
                 }
             }
             server.info("Total Id Reception Not Match que quedan por procesar: " + listIdReceptionNotMatch.size()); 
@@ -2715,7 +2757,7 @@ public class MyRobot implements IRobot {
             int timesBlank = 0;
             //rowColumn = linkSheet.createRow(rowCount);
             server.info("Read All Filled Row From Sheet: " + linkSheet.getSheetName());
-            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio);
+            listTenPoint = databaseUtilities.searchByStoreDateAmount(server, databasePath, idFolio, listFirstJoin);
             server.info("Total de Link Elementos: " + listTenPoint.size());
             //server.info("Total de Filas: " + linkSheet.getLastRowNum());
             server.info("Escribiendo Datos del Punto 10");

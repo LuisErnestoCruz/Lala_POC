@@ -762,13 +762,15 @@ public class DatabaseUtilities {
                 prepareStatement.setString(5, branch.getCedis());
                 prepareStatement.setString(6, branch.getSucursalSAP());
                 prepareStatement.setString(7, branch.getSucursalLALA());
-                prepareStatement.setString(8, branch.getCrLALA());
-                prepareStatement.setString(9, branch.getPlaza1());
-                prepareStatement.setString(10, branch.getCrOXXO());
-                prepareStatement.setString(11, branch.getPlaza2());
-                prepareStatement.setString(12, branch.getSucursalOXXO());
-                prepareStatement.setString(13, branch.getLiquidacion());
-                prepareStatement.setString(14, branch.getVentaCruzada());
+                prepareStatement.setString(8, branch.getSucursalLALA2());
+                prepareStatement.setString(9, branch.getCrLALA());
+                prepareStatement.setString(10, branch.getPlaza1());
+                prepareStatement.setString(11, branch.getCrOXXO());
+                prepareStatement.setString(12, branch.getPlaza2());
+                prepareStatement.setString(13, branch.getSucursalOXXO());
+                prepareStatement.setString(14, branch.getSucursalOXXO2());
+                prepareStatement.setString(15, branch.getLiquidacion());
+                prepareStatement.setString(16, branch.getVentaCruzada());
                 prepareStatement.addBatch();
                 times++;
                 
@@ -1182,7 +1184,9 @@ public class DatabaseUtilities {
                         case 11: saleInformation += "?,"; break;
                         case 12: saleInformation += "?,"; break;
                         case 13: saleInformation += "?,"; break;
-                        case 14: saleInformation += "?"; break;
+                        case 14: saleInformation += "?,"; break;
+                        case 15: saleInformation += "?,"; break;
+                        case 16: saleInformation += "?"; break;
                         default: saleInformation += "?"; break;
                     }
                 }
@@ -1323,13 +1327,15 @@ public class DatabaseUtilities {
                         case 5: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
                         case 6: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
                         case 7: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
-                        case 8: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 8: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
                         case 9: columnParameters += " " + columns.get(a) + " TEXT,"; break;
                         case 10: columnParameters += " " + columns.get(a) + " TEXT,"; break;
                         case 11: columnParameters += " " + columns.get(a) + " TEXT,"; break;
                         case 12: columnParameters += " " + columns.get(a) + " TEXT,"; break;
                         case 13: columnParameters += " " + columns.get(a) + " TEXT,"; break;
-                        case 14: columnParameters += " " + columns.get(a) + " TEXT"; break;
+                        case 14: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 15: columnParameters += " " + columns.get(a) + " TEXT,"; break;
+                        case 16: columnParameters += " " + columns.get(a) + " TEXT"; break;
                         default: columnParameters += " TEXT,"; break; 
                     }
                 }
@@ -1479,11 +1485,11 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -1518,12 +1524,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             " " +
@@ -1557,12 +1563,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -1626,7 +1632,7 @@ public class DatabaseUtilities {
         return listResult;
     }
     
-    public ArrayList<Link> searchByStoreDateAmount(IJidokaServer<?> server, String url, int idFolio)
+    public ArrayList<Link> searchByStoreDateAmount(IJidokaServer<?> server, String url, int idFolio, ArrayList<Link> listIdReception)
     {
         ArrayList<Link> listResult = new ArrayList<Link>(); 
         try
@@ -1637,6 +1643,7 @@ public class DatabaseUtilities {
             Connection connection = connectDatabase(server, url);
             connection.setAutoCommit(false);
             PreparedStatement preparedStatement =  null;
+            StringBuilder sqlSubQuery1 = new StringBuilder();
             String sqlQuery = null;
             /*sqlQuery = "SELECT " +
             "ventas.id AS idVenta, " +
@@ -1696,13 +1703,23 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursales.sucursal_LALA) AND (recepciones_tienda = sucursales.sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
-            "GROUP BY idRecepcion) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario2 = sucursales.sucursal_LALA2) AND (recepciones_tienda2 = sucursales.sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) AND idRecepcion NOT IN(";
+            
+            for(int a = 0; a < listIdReception.size(); a++)
+            {
+                sqlSubQuery1.append(String.valueOf(listIdReception.get(a).getRecepcion().getId()));
+                sqlSubQuery1.append(",");
+            }
+            
+            sqlSubQuery1.deleteCharAt(sqlSubQuery1.lastIndexOf(",")); 
+            sqlQuery += sqlSubQuery1.toString();
+            sqlQuery += ") "; 
+            sqlQuery += "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "ORDER BY ventas_destinatario";
             //server.info("Query:" + sqlQuery);
@@ -1757,7 +1774,7 @@ public class DatabaseUtilities {
         return listResult;
     }
     
-    public ArrayList<Sale> getSalesNotMatch(IJidokaServer<?> server, String url, int idFolio)
+    public ArrayList<Sale> getSalesNotMatch(IJidokaServer<?> server, String url, int idFolio, ArrayList<Link> listFirstJoin)
     {
         ArrayList<Sale> listSaleResult = new ArrayList<Sale>(); 
         try
@@ -1766,6 +1783,7 @@ public class DatabaseUtilities {
             Connection connection = connectDatabase(server, url);
             connection.setAutoCommit(false);
             PreparedStatement preparedStatement =  null;
+            StringBuilder sqlSubQuery1 = new StringBuilder();
             String sqlQuery = null;
             /*sqlQuery = "SELECT * FROM ventas WHERE idFolio = ? AND id NOT IN(SELECT idVenta FROM (SELECT " +
             "ventas.id AS idVenta, " +
@@ -1887,11 +1905,11 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " + 
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " + 
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -1924,12 +1942,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -1961,12 +1979,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -1998,13 +2016,23 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursales.sucursal_LALA) AND (recepciones_tienda = sucursales.sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
-            "GROUP BY idRecepcion) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario2 = sucursales.sucursal_LALA2) AND (recepciones_tienda2 = sucursales.sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) AND idRecepcion NOT IN(";
+            
+            for(int a = 0; a < listFirstJoin.size(); a++)
+            {
+                sqlSubQuery1.append(String.valueOf(listFirstJoin.get(a).getRecepcion().getId()));
+                sqlSubQuery1.append(",");
+            }
+            
+            sqlSubQuery1.deleteCharAt(sqlSubQuery1.lastIndexOf(",")); 
+            sqlQuery += sqlSubQuery1.toString();
+            sqlQuery += ")"; 
+            sqlQuery += "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
             "GROUP BY idRecepcion " +
@@ -2066,7 +2094,7 @@ public class DatabaseUtilities {
         return listSaleResult;
     }
     
-    public ArrayList<Reception> getReceptionsNotMatch(IJidokaServer<?> server, String url, int idFolio)
+    public ArrayList<Reception> getReceptionsNotMatch(IJidokaServer<?> server, String url, int idFolio, ArrayList<Link> listFirstJoin)
     {
         ArrayList<Reception> listReceptionResult = new ArrayList<Reception>(); 
         try
@@ -2075,6 +2103,7 @@ public class DatabaseUtilities {
             Connection connection = connectDatabase(server, url);
             connection.setAutoCommit(false);
             PreparedStatement preparedStatement =  null;
+            StringBuilder sqlSubQuery1 = new StringBuilder();
             String sqlQuery = null;
             /*sqlQuery = "SELECT * FROM recepciones WHERE idFolio = ? AND id NOT IN(SELECT idRecepcion FROM (SELECT " +
             "ventas.id AS idVenta, " +
@@ -2199,11 +2228,11 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " + 
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " + 
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -2236,12 +2265,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " + 
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " + 
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -2273,12 +2302,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -2310,13 +2339,23 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursales.sucursal_LALA) AND (recepciones_tienda = sucursales.sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
-            "GROUP BY idRecepcion) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario2 = sucursales.sucursal_LALA2) AND (recepciones_tienda2 = sucursales.sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) AND idRecepcion NOT IN(";
+            
+            for(int a = 0; a < listFirstJoin.size(); a++)
+            {
+                sqlSubQuery1.append(String.valueOf(listFirstJoin.get(a).getRecepcion().getId()));
+                sqlSubQuery1.append(",");
+            }
+            
+            sqlSubQuery1.deleteCharAt(sqlSubQuery1.lastIndexOf(",")); 
+            sqlQuery += sqlSubQuery1.toString();
+            sqlQuery += ")";
+            sqlQuery += "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
             "GROUP BY idRecepcion " +
@@ -2384,7 +2423,7 @@ public class DatabaseUtilities {
             String sqlQuery = "";
             String sqlSubQuery1 = ""; 
             String sqlSubQuery2 = "";
-            sqlSubQuery1 = "SELECT ventas_id, ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, recepciones_id, recepciones_adicional, recepciones_tienda, recepciones_remision, recepciones_fecha, recepciones_neto, ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje  FROM(";
+            sqlSubQuery1 = "SELECT * FROM(SELECT ventas_id, ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, recepciones_id, recepciones_adicional, recepciones_tienda, recepciones_remision, recepciones_fecha, recepciones_neto, ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje  FROM(";
             sqlSubQuery1 += "SELECT * FROM (SELECT ventas_id, ventas_idFolio, ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_nombre_destinatario2, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, (ventas_importe - ROUND(ventas_importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_2, (ventas_importe + ROUND(ventas_importe * documento.porcentaje_incidencia, 2)) AS ventas_importe_3 FROM (SELECT ventas.id AS ventas_id, ventas.idFolio AS ventas_idFolio, ventas.fecha AS ventas_fecha, ventas.pedido_adicional AS ventas_pedido_adicional, ventas.factura AS ventas_factura, ventas.folio AS ventas_folio, ventas.solicitante AS ventas_solicitante, ventas.cedis AS ventas_cedis, ventas.destinatario AS ventas_destinatario, ventas.nombre_destinatario AS ventas_nombre_destinatario, ventas.nombre_destinatario2 AS ventas_nombre_destinatario2, substr(ventas.factura_remisionSicav, 0, 4) AS ventas_abreviacion_factura, substr(ventas.factura_remisionSicav, 4, length(ventas.factura_remisionSicav)) AS ventas_remisionSicav, ventas.importe AS ventas_importe FROM ventas WHERE idFolio = ? AND id NOT IN(SELECT idVenta FROM(SELECT * FROM(SELECT * FROM(SELECT  " +
             "ventas.id AS idVenta, " +
             "ventas.idFolio AS ventas_idFolio, " +
@@ -2413,11 +2452,11 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -2450,12 +2489,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -2487,12 +2526,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -2524,12 +2563,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursal_LALA) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario2 = sucursal_LALA2) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -2577,11 +2616,11 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
             "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND (recepciones_remision = ventas_remisionSicav) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
@@ -2614,12 +2653,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND ((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION  " +
@@ -2651,12 +2690,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones INNER JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "INNER JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas_idFolio = ?) AND (recepciones_idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (((recepciones_valor = ventas_importe) OR (recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))) AND (recepciones_adicional = ventas_pedido_adicional) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             "UNION " +
@@ -2688,12 +2727,12 @@ public class DatabaseUtilities {
             "recepciones.neto AS recepciones_neto,  " +
             "ROUND((ventas.importe - recepciones.neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas.importe - recepciones.neto), 2)) / ventas.importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM recepciones JOIN ventas ON ventas.idFolio = recepciones.idFolio  " +
             "JOIN documento ON documento.id = recepciones.idFolio " +
-            "JOIN sucursales ON sucursales.sucursal_LALA = ventas.nombre_destinatario AND sucursales.sucursal_OXXO = recepciones.tienda " +
-            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario = sucursal_LALA) AND (recepciones_tienda = sucursal_OXXO) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
+            "JOIN sucursales ON sucursales.sucursal_LALA2 = ventas.nombre_destinatario2 AND sucursales.sucursal_OXXO2 = recepciones.tienda2 " +
+            "WHERE (ventas.idFolio = ?) AND (recepciones.idFolio = ?) AND NOT(recepciones_remision = ventas_remisionSicav) AND NOT((ventas_remisionSicav LIKE '%'|| recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3)) AND NOT(recepciones_adicional = ventas_pedido_adicional) AND (recepciones_fecha = ventas_fecha) AND (ventas_nombre_destinatario2 = sucursal_LALA2) AND (recepciones_tienda2 = sucursal_OXXO2) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3) " +
             "GROUP BY idRecepcion) " +
             "GROUP BY idVenta " +
             ") " +
@@ -2704,7 +2743,7 @@ public class DatabaseUtilities {
             ") " +
             "JOIN documento ON documento.id = idFolio " +
             ")" +
-            "LEFT JOIN sucursales ON (sucursales.sucursal_LALA = ventas_nombre_destinatario)";
+            "LEFT JOIN sucursales ON (sucursales.sucursal_LALA2 = ventas_nombre_destinatario2)";
             
             index = sqlSubQuery2.indexOf("?");
             while(index >= 0) {
@@ -2713,8 +2752,9 @@ public class DatabaseUtilities {
             }
             
             sqlQuery += sqlSubQuery2;
-            sqlQuery += "WHERE (recepciones_remision = ventas_remisionSicav) OR (recepciones_adicional = ventas_pedido_adicional) OR (((ventas_nombre_destinatario = sucursal_LALA)) AND ((recepciones_tienda = sucursal_OXXO)) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3))";
-            sqlQuery += "GROUP BY ventas_id )";
+            sqlQuery += "WHERE (recepciones_remision = ventas_remisionSicav) OR (recepciones_adicional = ventas_pedido_adicional) OR (((ventas_nombre_destinatario2 = sucursal_LALA2)) AND ((recepciones_tienda2 = sucursal_OXXO2)) AND (recepciones_valor BETWEEN ventas_importe_2 AND ventas_importe_3))";
+            sqlQuery += "GROUP BY ventas_id ) ";
+            sqlQuery += "GROUP BY recepciones_id )"; 
             sqlQuery += "ORDER BY ventas_destinatario";
             
             /*sqlSubQuery1 = "SELECT ventas_fecha, ventas_pedido_adicional, ventas_factura, ventas_folio, ventas_solicitante, ventas_cedis, ventas_destinatario, ventas_nombre_destinatario, ventas_abreviacion_factura, ventas_remisionSicav, ventas_importe, recepciones_id, recepciones_adicional, recepciones_tienda, recepciones_remision, recepciones_fecha, recepciones_neto, ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje  FROM("; 
@@ -3222,7 +3262,7 @@ public class DatabaseUtilities {
             String sqlQuery = "";
             StringBuilder sqlSubQuery1 = new StringBuilder(); 
             StringBuilder sqlSubQuery2 = new StringBuilder();
-            sqlQuery += "SELECT  " +
+            sqlQuery += "SELECT * FROM(SELECT  " +
             "ventas_id, " +
             "ventas_idFolio, " +
             "ventas_fecha, " +
@@ -3254,8 +3294,8 @@ public class DatabaseUtilities {
             "recepciones_neto, " +
             "ROUND((ventas_importe - recepciones_neto), 2) AS amarre_diferencia, " +
             "CAST(ROUND((ABS(ROUND((ventas_importe - recepciones_neto), 2)) / ventas_importe) * 100, 2) AS TEXT) || '%' AS amarre_porcentaje, " +
-            "sucursales.sucursal_LALA AS sucursal_LALA, " +
-            "sucursales.sucursal_OXXO AS sucursal_OXXO " +
+            "sucursales.sucursal_LALA2 AS sucursal_LALA2, " +
+            "sucursales.sucursal_OXXO2 AS sucursal_OXXO2 " +
             "FROM (";
             sqlSubQuery1.append("SELECT * FROM(SELECT " +
             "ventas.id AS ventas_id, " +
@@ -3318,8 +3358,12 @@ public class DatabaseUtilities {
             sqlQuery += sqlSubQuery2.toString();
             
             sqlQuery += ")";
-            sqlQuery += "LEFT JOIN sucursales ON sucursales.sucursal_LALA = ventas_nombre_destinatario ";
-            sqlQuery += "WHERE (ventas_remisionSicav = recepciones_remision) OR (ventas_pedido_adicional = recepciones_adicional) OR ((ventas_remisionSicav LIKE '%' || recepciones_remision) AND (recepciones_tienda = sucursal_OXXO) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) OR ((recepciones_fecha3 <= ventas_fecha3) AND (ventas_nombre_destinatario = sucursal_LALA) AND (recepciones_tienda = sucursal_OXXO) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3)))"; 
+            sqlQuery += "LEFT JOIN sucursales ON sucursales.sucursal_LALA2 = ventas_nombre_destinatario2 ";
+            sqlQuery += "WHERE (ventas_remisionSicav = recepciones_remision) OR (ventas_pedido_adicional = recepciones_adicional) OR ((ventas_remisionSicav LIKE '%' || recepciones_remision) AND (recepciones_tienda2 = sucursal_OXXO2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) OR ((recepciones_fecha3 <= ventas_fecha3) AND (ventas_nombre_destinatario2 = sucursal_LALA2) AND (recepciones_tienda2 = sucursal_OXXO2) AND ((recepciones_valor >= ventas_importe_2 AND recepciones_valor <= ventas_importe) OR (recepciones_valor >= ventas_importe AND recepciones_valor <= ventas_importe_3))) "; 
+            sqlQuery += "GROUP BY recepciones_id ";
+            sqlQuery += ") ";
+            sqlQuery += "GROUP BY ventas_id ";
+            sqlQuery += "ORDER BY ventas_destinatario";
             
             preparedStatement = connection.prepareStatement(sqlQuery);
             preparedStatement.setInt(1, currentIdFolio);
@@ -3472,13 +3516,15 @@ public class DatabaseUtilities {
         branchColumns.put(5, "cedis");
         branchColumns.put(6, "sucursal_SAP");
         branchColumns.put(7, "sucursal_LALA");
-        branchColumns.put(8, "cr_LALA");
-        branchColumns.put(9, "plaza1");
-        branchColumns.put(10, "cr_OXXO");
-        branchColumns.put(11, "plaza2");
-        branchColumns.put(12, "sucursal_OXXO");
-        branchColumns.put(13, "liquidacion");
-        branchColumns.put(14, "venta_cruzada");
+        branchColumns.put(8, "sucursal_LALA2");
+        branchColumns.put(9, "cr_LALA");
+        branchColumns.put(10, "plaza1");
+        branchColumns.put(11, "cr_OXXO");
+        branchColumns.put(12, "plaza2");
+        branchColumns.put(13, "sucursal_OXXO");
+        branchColumns.put(14, "sucursal_OXXO2");
+        branchColumns.put(15, "liquidacion");
+        branchColumns.put(16, "venta_cruzada");
     }
     
     public void virtualSaleTableColumns()

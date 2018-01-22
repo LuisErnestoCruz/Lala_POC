@@ -18,11 +18,13 @@ public class Branch {
     private String cedis;
     private String sucursalSAP;
     private String sucursalLALA;
+    private String sucursalLALA2;
     private String crLALA;
     private String plaza1;
     private String crOXXO;
     private String plaza2;
     private String sucursalOXXO;
+    private String sucursalOXXO2;
     private String liquidacion;
     private String ventaCruzada;
 
@@ -90,6 +92,14 @@ public class Branch {
         this.sucursalLALA = sucursalLALA;
     }
 
+    public String getSucursalLALA2() {
+        return sucursalLALA2;
+    }
+
+    public void setSucursalLALA2(String sucursalLALA2) {
+        this.sucursalLALA2 = sucursalLALA2;
+    }
+    
     public String getCrLALA() {
         return crLALA;
     }
@@ -130,6 +140,14 @@ public class Branch {
         this.sucursalOXXO = sucursalOXXO;
     }
 
+    public String getSucursalOXXO2() {
+        return sucursalOXXO2;
+    }
+
+    public void setSucursalOXXO2(String sucursalOXXO2) {
+        this.sucursalOXXO2 = sucursalOXXO2;
+    }
+    
     public String getLiquidacion() {
         return liquidacion;
     }
