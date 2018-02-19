@@ -1,6 +1,11 @@
 package com.dobleo.rpa.lala;
 
 import com.dobleo.rpa.database.DatabaseUtilities;
+import com.dobleo.rpa.email.EmailMessage;
+import com.dobleo.rpa.email.ReadEmail;
+import com.dobleo.rpa.file.Header;
+import com.dobleo.rpa.file.OutputExcelFile;
+import com.dobleo.rpa.file.Perception;
 import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
 import com.dobleo.rpa.models.Link;
@@ -34,9 +39,12 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.monitorjbl.xlsx.StreamingReader;
+import com.novayre.jidoka.client.api.execution.IUsernamePassword;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
+import javax.mail.Message;
 import org.apache.poi.ss.usermodel.CellType;
 
 /**
@@ -69,9 +77,13 @@ public class MyRobot implements IRobot {
         private boolean existPastInputFile = false;
 	private int currentItem = 1;
         private int currentLinkIndex = 0;
+        private int currentItemIndex = 1;
+        private int numberOfItems = 0;
+        private int totalListMail = 0;
         private DatabaseUtilities databaseUtilities;
 	private String databasePath;
         private String branchExcelFilePath;
+        private String excelFilePath; 
         private String currentExcelFilePath;
         private String pastExcelFilePath;
         private String laterExcelFilePath;
@@ -79,10 +91,13 @@ public class MyRobot implements IRobot {
         private String pastFolioNumber;
         private String laterFolioNumber;
         private String branchFileName;
+        private String excelFileName;
         private String currentfileName;
         private String pastFileName;
         private String laterFileName;
         private String incidencePercentage;
+        private String username;
+        private String password;
         private static final String PARAM_BRANCH_INPUT_FILE = "sucursales";
         private static final String PARAM_CURRENT_INPUT_FILE = "folioBase";
         private static final String PARAM_PAST_INPUT_FILE = "folioPasado"; 
@@ -103,12 +118,16 @@ public class MyRobot implements IRobot {
         private Map<Integer, String> virtualMoorageColumns;
         private Map<Integer, String> salesColumns;
         private Map<Integer, String> branchsColumns;
+        private ArrayList<EmailMessage> listEmailMessages;
         private ArrayList<Link> listFirstJoin; 
         private ArrayList<Link> listTenPoint;
         private ArrayList<Integer> listIdReceptionNotMatch; 
         private ArrayList<Integer> listRemoveIdReceptionNotMatch;
         private ArrayList<Integer> listIdSaleNotMatch;
         private ArrayList<Integer> listRemoveIdSaleNotMatch;
+        private IUsernamePassword credential;
+        private ReadEmail readEmail;
+        private OutputExcelFile outputExcelFile; 
 	/**
 	 * Action "start"
 	 * @return
@@ -137,8 +156,10 @@ public class MyRobot implements IRobot {
 		// we set number of items
 		// on an actual robot, this number can be got from an application,
 		// an Excel datasheet, etc.
-		server.setNumberOfItems(1);
+		//server.setNumberOfItems(1);
                 
+                readEmail = new ReadEmail();
+                outputExcelFile = new OutputExcelFile();
                 databaseUtilities = new DatabaseUtilities();
                 documentColumns = null;
                 receptionsColumns = null;
@@ -159,6 +180,16 @@ public class MyRobot implements IRobot {
                 currentExcelFilePath = Paths.get(server.getCurrentDir(), currentfileName).toString();
                 //pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
                 incidencePercentage = server.getParameters().get(PARAM_INCIDENCE_PERCENTAGE);                
+                
+                IUsernamePassword credential = server.getCredentials("LALA_POC_TEST").get(0);
+                
+                if(credential != null)
+                {
+                    username = credential.getUsername();
+                    server.info("Username: " + username);
+                    password = credential.getPassword();
+                    //server.info("Password: " + password);
+                }
                 
                 if(pastFileName != null)
                 {
@@ -214,6 +245,63 @@ public class MyRobot implements IRobot {
             //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns);
             //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUALS_MOORAGE, virtualMoorageColumns);
         }
+        
+        public void readEmailMessages() throws Exception
+        {
+            excelFilePath = "";
+            server.info("Access Into Email Account");
+            server.info("Set server Instance");
+            readEmail.setServer(server);
+            server.info("Set From Email Address"); 
+            readEmail.setFrom(username);
+            server.info("Set Username"); 
+            readEmail.setUsername(username);
+            server.info("Set Passwrod");
+            readEmail.setPassword(password);
+            server.info("Set Subject From Message");
+            readEmail.setSubject("Reporte de Folio de Pago Femsa");
+            server.info("Obtain All Message From Email Account that have different criteria Search Terms");
+            listEmailMessages = readEmail.readUnseenEmails(); 
+            if(listEmailMessages != null)
+            {
+               if(listEmailMessages.size() > 0)
+               {
+                   numberOfItems = listEmailMessages.size();
+                   server.setNumberOfItems(numberOfItems);
+                   server.setCurrentItem(currentItemIndex, "Correo electronico: " + readEmail.getFrom() +  " Asunto: " + listEmailMessages.get(currentItemIndex - 1).getSubject());
+                   server.info("Dirreccion del servidor: " + server.getCurrentDir());
+                   excelFileName = readEmail.formatInformationFromEmailContent(listEmailMessages.get(currentItemIndex - 1));
+                   outputExcelFile.createExcelFile(server, excelFileName);
+               }
+            }
+        }
+        
+        public void createExcelFile() throws Exception
+        {
+            server.info("Create Excel File: " + excelFileName);
+            ArrayList<String> columnNames = null;
+            ArrayList<Header> headers = null;
+            ArrayList<Perception> perceptions = null;
+            if(outputExcelFile != null && listEmailMessages != null && readEmail != null)
+            {
+                if(listEmailMessages.size() > 0)
+                {
+                    headers = readEmail.getHeaders(); 
+                    columnNames = readEmail.getColumnNames();
+                    perceptions = readEmail.getPerceptions();
+                    
+                    if(headers != null && columnNames != null && perceptions != null)
+                    {
+                        if(headers.size() > 0 && columnNames.size() > 0 && perceptions.size() > 0)
+                        {
+                            outputExcelFile.createFolioSheet(server, excelFileName, columnNames, headers, perceptions); 
+                            server.info("Success creation of Excel File: " + excelFileName);
+                        }
+                    }
+                }
+            }
+        }
+        
         
         public void readExcelFileInformation() throws Exception
         {
@@ -1962,6 +2050,27 @@ public class MyRobot implements IRobot {
             book = WorkbookFactory.create(inputFile);
             //book = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(inputFile);
             server.info("Get Sheet from Excel File");
+            /*
+            Prueba 
+            */
+            if(book.getNumberOfSheets() > 5)
+            {
+                ArrayList<String> names = new ArrayList<String>(); 
+                for (int a = 0; a < book.getNumberOfSheets(); a++) {
+                    if(a >= 5)
+                    {
+                        names.add(book.getSheetName(a)); 
+                    }
+                    
+                }
+                
+                for(String name: names)
+                {
+                    book.removeSheetAt(book.getSheetIndex(name));
+                }
+            }
+            /*Termina Prueba*/
+            
             linkSheet = book.createSheet("Puntos 8-9");
             String[] columnNames = new String[]{"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", " ", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", " ", "Diferencia", "%", " ", "Destinatario", " Tipo de Busqueda", "Tipo de Busqueda"};
             int rowCount = 0; 
@@ -2929,6 +3038,29 @@ public class MyRobot implements IRobot {
             else if(existPastInputFile == false) 
             {
                 response = "no"; 
+            }
+            
+            return response;
+        }
+        
+        public String hasMoreEmail() throws Exception {
+            String response = "no";
+            if(listEmailMessages != null)
+            {
+                server.setCurrentItemResultToOK();
+                if(currentItemIndex == listEmailMessages.size()) 
+                {
+                    response = "no"; 
+                }
+                else 
+                {
+                    currentItemIndex++;
+                    response = "yes"; 
+                }
+            }
+            else 
+            {
+                currentItemIndex++;
             }
             
             return response;

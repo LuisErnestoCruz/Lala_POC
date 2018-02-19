@@ -89,6 +89,21 @@
                 <artifactId>xlsx-streamer</artifactId>
                 <version>1.2.0</version>
             </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>1.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>gimap</artifactId>
+                <version>1.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>1.8.3</version>
+            </dependency>
 		<!--
 		<dependency>
 			<groupId>com.novayre.jidoka.module</groupId>
