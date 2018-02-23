@@ -7,6 +7,7 @@ package com.dobleo.rpa.email;
 
 import com.dobleo.rpa.file.Header;
 import com.dobleo.rpa.file.Perception;
+import com.dobleo.rpa.file.Rule;
 import com.dobleo.rpa.file.Validation;
 import com.novayre.jidoka.client.api.IJidokaServer;
 import com.sun.mail.gimap.GmailFolder;
@@ -57,6 +58,7 @@ public class ReadEmail {
     private ArrayList<String> columnNames;
     private ArrayList<Header> headers;
     private ArrayList<Perception> perceptions;
+    private ArrayList<Perception> invalidPerceptions; 
     
     public ReadEmail()
     {
@@ -148,6 +150,14 @@ public class ReadEmail {
 
     public void setPerceptions(ArrayList<Perception> perceptions) {
         this.perceptions = perceptions;
+    }
+
+    public ArrayList<Perception> getInvalidPerceptions() {
+        return invalidPerceptions;
+    }
+
+    public void setInvalidPerceptions(ArrayList<Perception> invalidPerceptions) {
+        this.invalidPerceptions = invalidPerceptions;
     }
     
     public IJidokaServer<?> getServer() {
@@ -317,7 +327,10 @@ public class ReadEmail {
             int countHeader = 0;
             int currentNumberColumn = 0;
             String tableElement = "";
+            String currencyNumber = "";
+            String currencyNumberFormat = ""; 
             Header header = new Header();
+            Rule rule = new Rule(); 
             Perception perception = new Perception();
             Validation validation = new Validation();
             Document document = null;
@@ -403,19 +416,21 @@ public class ReadEmail {
                             if(currentNumberColumn >= 9)
                             {
                                 isPerception = true;
+                                currencyNumber = ""; 
+                                currencyNumberFormat = "";
                                 //System.out.println("Texto de la columna " + numberTimes + ": " + column.text());
                                 switch(countColumn)
                                 {
-                                    case 1: perception.setMtvo(column.text()); validation.setId(idValidation); validation.setMtvo(rulePerception(1, column.text())); if(validation.isMtvo() == false){ invalidPerception = true; } break;
-                                    case 2: perception.setTienda(column.text()); validation.setTienda(rulePerception(2, column.text())); if(validation.isTienda() == false){ invalidPerception = true; } break;
-                                    case 3: perception.setNumeroRecibo(column.text()); validation.setNumeroRecibo(rulePerception(3, column.text())); if(validation.isNumeroRecibo()== false){ invalidPerception = true; } break;
-                                    case 4: perception.setNumeroOrden(column.text()); validation.setNumeroOrden(rulePerception(4, column.text())); if(validation.isNumeroOrden()== false){ invalidPerception = true; } break;
-                                    case 5: perception.setNumeroPedidoAdicional(column.text()); validation.setNumeroPedidoAdicional(rulePerception(5, column.text())); if(validation.isNumeroPedidoAdicional()== false){ invalidPerception = true; } break;
-                                    case 6: perception.setNumeroRemision(column.text()); validation.setNumeroRemision(rulePerception(6, column.text())); if(validation.isNumeroRemision()== false){ invalidPerception = true; } break;
-                                    case 7: perception.setFecha(column.text()); validation.setFecha(rulePerception(7, column.text())); if(validation.isFecha()== false){ invalidPerception = true; } break;
-                                    case 8: perception.setValor(column.text()); validation.setValor(rulePerception(8, column.text())); if(validation.isValor()== false){ invalidPerception = true; } break;
-                                    case 9: perception.setIva(column.text()); validation.setIva(rulePerception(9, column.text())); if(validation.isIva()== false){ invalidPerception = true; } break;
-                                    case 10: perception.setNeto(column.text()); validation.setNeto(rulePerception(10, column.text())); if(validation.isNeto()== false){ invalidPerception = true; } break;
+                                    case 1: perception.setMtvo(column.text().replace(" ", "")); validation.setId(idValidation); validation.setMtvo(rule.checkRule(1, column.text())); if(validation.isMtvo() == false){ invalidPerception = true; } break;
+                                    case 2: perception.setTienda(column.text()); validation.setTienda(rule.checkRule(2, column.text())); if(validation.isTienda() == false){ invalidPerception = true; } break;
+                                    case 3: perception.setNumeroRecibo(column.text().replace(" ", "")); validation.setNumeroRecibo(rule.checkRule(3, column.text())); if(validation.isNumeroRecibo()== false){ invalidPerception = true; } break;
+                                    case 4: perception.setNumeroOrden(column.text().replace(" ", "")); validation.setNumeroOrden(rule.checkRule(4, column.text())); if(validation.isNumeroOrden()== false){ invalidPerception = true; } break;
+                                    case 5: perception.setNumeroPedidoAdicional(column.text().replace(" ", "")); validation.setNumeroPedidoAdicional(rule.checkRule(5, column.text())); if(validation.isNumeroPedidoAdicional()== false){ invalidPerception = true; } break;
+                                    case 6: perception.setNumeroRemision(column.text().replace(" ", "")); validation.setNumeroRemision(rule.checkRule(6, column.text())); if(validation.isNumeroRemision()== false){ invalidPerception = true; } break;
+                                    case 7: perception.setFecha(column.text().replace(" ", "")); validation.setFecha(rule.checkRule(7, column.text())); if(validation.isFecha()== false){ invalidPerception = true; } break;
+                                    case 8: currencyNumber = column.text().replace(" ", ""); if(currencyNumber.indexOf(".") >= 0) { perception.setValor(currencyNumber); } else { currencyNumberFormat = currencyNumber.substring(0, currencyNumber.length() - 2); currencyNumberFormat += "."; currencyNumberFormat = currencyNumberFormat + currencyNumber.substring(currencyNumber.length() - 2, currencyNumber.length()); perception.setValor(currencyNumberFormat); } validation.setValor(rule.checkRule(8, column.text())); if(validation.isValor()== false){ invalidPerception = true; } break;
+                                    case 9: currencyNumber = column.text().replace(" ", ""); if(currencyNumber.indexOf(".") >= 0) { perception.setIva(currencyNumber); } else { currencyNumberFormat = currencyNumber.substring(0, currencyNumber.length() - 2); currencyNumberFormat += "."; currencyNumberFormat = currencyNumberFormat + currencyNumber.substring(currencyNumber.length() - 2, currencyNumber.length()); perception.setIva(currencyNumberFormat); } validation.setIva(rule.checkRule(9, column.text())); if(validation.isIva()== false){ invalidPerception = true; } break;
+                                    case 10: currencyNumber = column.text().replace(" ", ""); if(currencyNumber.indexOf(".") >= 0) { perception.setNeto(currencyNumber); } else { currencyNumberFormat = currencyNumber.substring(0, currencyNumber.length() - 2); currencyNumberFormat += "."; currencyNumberFormat = currencyNumberFormat + currencyNumber.substring(currencyNumber.length() - 2, currencyNumber.length()); perception.setNeto(currencyNumberFormat); } validation.setNeto(rule.checkRule(10, column.text())); if(validation.isNeto()== false){ invalidPerception = true; } break;
                                 }
                                 countColumn = countColumn + 1;
                             }
@@ -425,7 +440,8 @@ public class ReadEmail {
                             {
                                 isPerception = true;
                                 countColumn = 7;
-                                perception.setFecha(column.text());
+                                validation.setId(idValidation);
+                                perception.setFecha(column.text().replace(" ", ""));
                             }
 
                             if(column.text() != null)
@@ -437,8 +453,9 @@ public class ReadEmail {
                                     {
                                         isPerception = true;
                                         countColumn = 7;
+                                        validation.setId(idValidation);
                                         perception.setMtvo("");
-                                        perception.setFecha(column.text());
+                                        perception.setFecha(column.text().replace(" ", ""));
                                     }
                                 }
                             }
@@ -448,11 +465,13 @@ public class ReadEmail {
                         if(column.className().equals("res1") || column.className().equals("res2"))
                         {
                             countColumn = countColumn + 1;
+                            currencyNumber = ""; 
+                            currencyNumberFormat = ""; 
                             switch(countColumn)
                             {
-                                case 8: perception.setValor(column.text()); break;
-                                case 9: perception.setIva(column.text()); break;
-                                case 10: perception.setNeto(column.text()); break;
+                                case 8: currencyNumber = column.text().replace(" ", ""); if(currencyNumber.indexOf(".") >= 0){ perception.setValor(currencyNumber); } else { currencyNumberFormat = currencyNumber.substring(0, currencyNumber.length() - 2); currencyNumberFormat += "."; currencyNumberFormat = currencyNumberFormat + currencyNumber.substring(currencyNumber.length() - 2, currencyNumber.length());  perception.setValor(currencyNumberFormat);} break;
+                                case 9: currencyNumber = column.text().replace(" ", ""); if(currencyNumber.indexOf(".") >= 0){ perception.setIva(currencyNumber); } else { currencyNumberFormat = currencyNumber.substring(0, currencyNumber.length() - 2); currencyNumberFormat += "."; currencyNumberFormat = currencyNumberFormat + currencyNumber.substring(currencyNumber.length() - 2, currencyNumber.length());  perception.setIva(currencyNumberFormat);} break;
+                                case 10: currencyNumber = column.text().replace(" ", ""); if(currencyNumber.indexOf(".") >= 0){ perception.setNeto(currencyNumber); } else { currencyNumberFormat = currencyNumber.substring(0, currencyNumber.length() - 2); currencyNumberFormat += "."; currencyNumberFormat = currencyNumberFormat + currencyNumber.substring(currencyNumber.length() - 2, currencyNumber.length());  perception.setNeto(currencyNumberFormat);} break;
                                 default: break;
                             }
 
@@ -481,6 +500,7 @@ public class ReadEmail {
                 }
                 
                 this.perceptions = listPerception;
+                this.invalidPerceptions = listInvalidPerception; 
                 this.headers = listHeaderContent;
                 //Se eliminan los nombre repetidos y se mantiene el orden de la lista en como fueron insertados
                 listOrderColumnNames = new LinkedHashSet<String>(listCurrentColumnNames);
@@ -551,7 +571,7 @@ public class ReadEmail {
         return fileName;
     }
     
-    public boolean rulePerception(int position, String text)
+    /*public boolean rulePerception(int position, String text)
     {
         boolean rule = false;
         switch(position)
@@ -771,7 +791,7 @@ public class ReadEmail {
             default: break;
         }
         return rule;
-    }
+    }*/
     
     private String getTextFromMessage(Message message) throws MessagingException, IOException {
         String result = "";

@@ -6,6 +6,8 @@ import com.dobleo.rpa.email.ReadEmail;
 import com.dobleo.rpa.file.Header;
 import com.dobleo.rpa.file.OutputExcelFile;
 import com.dobleo.rpa.file.Perception;
+import com.dobleo.rpa.file.Rule;
+import com.dobleo.rpa.file.Validation;
 import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
 import com.dobleo.rpa.models.Link;
@@ -279,9 +281,17 @@ public class MyRobot implements IRobot {
         public void createExcelFile() throws Exception
         {
             server.info("Create Excel File: " + excelFileName);
+            Perception perception = null;
+            Validation validation = null;
+            Rule rule = null; 
             ArrayList<String> columnNames = null;
             ArrayList<Header> headers = null;
             ArrayList<Perception> perceptions = null;
+            ArrayList<Perception> invalidPerceptions = null;
+            ArrayList<Perception> replaceInvalidPerceptions = null;
+            ArrayList<Perception> receptionsIssue = null;
+            ArrayList<Perception> replaceReceptionsIssue = null;
+            ArrayList<Perception> refundsIssue = null;
             if(outputExcelFile != null && listEmailMessages != null && readEmail != null)
             {
                 if(listEmailMessages.size() > 0)
@@ -289,12 +299,19 @@ public class MyRobot implements IRobot {
                     headers = readEmail.getHeaders(); 
                     columnNames = readEmail.getColumnNames();
                     perceptions = readEmail.getPerceptions();
+                    invalidPerceptions = readEmail.getInvalidPerceptions(); 
                     
                     if(headers != null && columnNames != null && perceptions != null)
                     {
                         if(headers.size() > 0 && columnNames.size() > 0 && perceptions.size() > 0)
                         {
+                            rule = new Rule();
+                            server.info("Create Folio Sheet into current Excel File"); 
                             outputExcelFile.createFolioSheet(server, excelFileName, columnNames, headers, perceptions); 
+                            rule.asignRule(invalidPerceptions);
+                            server.info("Create " + excelFileName.substring(excelFileName.lastIndexOf("_") + 1, excelFileName.length()) + " Sheet into current Excel File"); 
+                            outputExcelFile.createFolioNumberSheet(server, excelFileName, columnNames, headers, perceptions, rule.getListPerception()); 
+                            
                             server.info("Success creation of Excel File: " + excelFileName);
                         }
                     }
