@@ -18,6 +18,7 @@ import com.sun.mail.imap.IMAPStore;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Paths;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,14 +26,23 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Properties;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.NoSuchProviderException;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
@@ -59,6 +69,7 @@ public class ReadEmail {
     private ArrayList<Header> headers;
     private ArrayList<Perception> perceptions;
     private ArrayList<Perception> invalidPerceptions; 
+    private ArrayList<Perception> refunds;
     
     public ReadEmail()
     {
@@ -158,6 +169,14 @@ public class ReadEmail {
 
     public void setInvalidPerceptions(ArrayList<Perception> invalidPerceptions) {
         this.invalidPerceptions = invalidPerceptions;
+    }
+
+    public ArrayList<Perception> getRefunds() {
+        return refunds;
+    }
+
+    public void setRefunds(ArrayList<Perception> refunds) {
+        this.refunds = refunds;
     }
     
     public IJidokaServer<?> getServer() {
@@ -322,6 +341,7 @@ public class ReadEmail {
             boolean checkFolioName = false;
             boolean isPerception = false;
             boolean invalidPerception = false;
+            boolean checkRefund = false;
             int idValidation = 0;
             int countColumn = 0;
             int countHeader = 0;
@@ -339,6 +359,8 @@ public class ReadEmail {
             ArrayList<Header> listHeaderContent = new ArrayList<Header>();
             ArrayList<Perception> listPerception = new ArrayList<Perception>();
             ArrayList<Perception> listInvalidPerception = new ArrayList<Perception>();
+            ArrayList<Perception> listReceptions = new ArrayList<Perception>();
+            ArrayList<Perception> listRefunds = new ArrayList<Perception>(); 
             LinkedHashSet<String> listOrderColumnNames = null;
             
             if(emailMessage != null)
@@ -557,6 +579,52 @@ public class ReadEmail {
                         break;
                     }
                 }
+                
+                 
+                for(Perception receptionRefundPerception: this.perceptions)
+                {
+                    validation = new Validation();
+                    validation = receptionRefundPerception.getValidacion();
+                    if(validation != null)
+                    {
+                        if(validation.isMtvo() && validation.isTienda() && validation.isNumeroRecibo() && validation.isNumeroOrden() && validation.isNumeroPedidoAdicional() && validation.isNumeroRemision() && validation.isFecha() && validation.isValor() && validation.isIva() && validation.isNeto())
+                        {
+                            if(receptionRefundPerception.getMtvo().equals("RECEPCIONES"))
+                            {
+                                listReceptions.add(receptionRefundPerception);
+                            }
+                        }
+                        else if(validation.isMtvo() && validation.isTienda() && !validation.isNumeroRecibo() && validation.isNumeroOrden() && validation.isNumeroPedidoAdicional() && validation.isNumeroRemision() && validation.isFecha() && validation.isValor() && validation.isIva() && validation.isNeto())
+                        {
+                            if(receptionRefundPerception.getMtvo().equals("DEVOLUCIONES"))
+                            {
+                                listRefunds.add(receptionRefundPerception);
+                            }
+                        }
+                        
+                        
+                    }
+                }
+                
+                refunds = new ArrayList<Perception>(); 
+                for(Perception refund: listRefunds)
+                {
+                    checkRefund = false;
+                    for(Perception reception: listReceptions)
+                    {
+                        if(refund.getFecha().equals(reception.getFecha()) && refund.getTienda().equals(reception.getTienda()) && refund.getValor().equals(reception.getValor()) && refund.getNeto().equals(reception.getNeto()))
+                        {
+                            //server.info("Tiene contraparte: " + refund.getTienda());
+                            checkRefund = true;
+                            break;
+                        }
+                        else
+                        {
+                            checkRefund = false;
+                        }
+                    }
+                    refunds.add(refund);
+                }
             }
         }
         catch(Exception e)
@@ -569,6 +637,86 @@ public class ReadEmail {
             server.error(sw.toString());
         }
         return fileName;
+    }
+    
+    public void sendEmailWithAttachment(String attachFile)
+    {
+        try
+        {
+            String messageText = null;
+            Message messages[] = null;
+            EmailMessage emailMessage = null;
+            Properties emailProperties = new Properties(); 
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+            BodyPart attachPart = new MimeBodyPart(); 
+            Multipart multipart = new MimeMultipart();
+            
+            emailProperties.put("mail.smtp.host", "p3plcpnl0484.prod.phx3.secureserver.net");
+            emailProperties.put("mail.smtp.auth", "true");
+            emailProperties.put("mail.user", username);
+            emailProperties.put("mail.password", password);
+            emailProperties.put("mail.transport.protocol", "smtp");
+            emailProperties.put("mail.smtp.starttls.enable", "true");
+            emailProperties.setProperty("mail.imap.ssl.enable", "true");
+            
+            
+            Session mailSession = Session.getInstance(emailProperties, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            }); 
+            mailSession.setDebug(true);
+            
+            //Transport transport = mailSession.getTransport("smtp");
+            //transport.connect("p3plcpnl0484.prod.phx3.secureserver.net", username, password);
+            
+            Message message = new MimeMessage(mailSession);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(username));
+            message.setSubject("Reporte de Folio Pago FEMSA - " + attachFile + " Amarre");
+            message.setSentDate(new Date());
+            
+            messageBodyPart.setText("");
+            multipart.addBodyPart(messageBodyPart);
+            DataSource datasource = new FileDataSource(Paths.get(server.getCurrentDir(), attachFile).toString() + ".xlsx");
+            attachPart.setDataHandler(new DataHandler(datasource));
+            attachPart.setFileName(attachFile + ".xlsx");
+            //attachPart.attachFile(Paths.get(server.getCurrentDir(), attachFile).toString() + ".xlsx");
+            multipart.addBodyPart(attachPart);
+            
+            message.setContent(multipart);
+            message.saveChanges();
+            Transport.send(message);
+            //transport.sendMessage(message, message.getRecipients(javax.mail.Message.RecipientType.TO));
+            //transport.close();
+            
+            
+        }
+        catch(NoSuchProviderException e)
+        {
+            server.error(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        catch(MessagingException e)
+        {
+            server.error(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        catch(Exception e)
+        {
+            server.error(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
     }
     
     /*public boolean rulePerception(int position, String text)

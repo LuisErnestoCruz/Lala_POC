@@ -5,6 +5,7 @@
  */
 package com.dobleo.rpa.database;
 
+import com.dobleo.rpa.file.Perception;
 import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
 import com.dobleo.rpa.models.Link;
@@ -1443,6 +1444,49 @@ public class DatabaseUtilities {
             server.error(sw.toString());
         }
         return id;
+    }
+    
+    public String getIdSAPBranch(IJidokaServer<?> server, String url, String tableName, String branchName)
+    {
+        String IdSAPBranch = "";
+        try
+        {
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement(); 
+            StringBuilder sqlQuery = null;
+            ResultSet resultSet = null; 
+            sqlQuery = new StringBuilder();
+            sqlQuery.append("SELECT sucursal_SAP FROM ");
+            sqlQuery.append(tableName);
+            sqlQuery.append(" WHERE sucursal_OXXO = '");
+            sqlQuery.append(branchName);
+            sqlQuery.append("'");
+            sqlQuery.append(" LIMIT 1");
+            sqlQuery.append(";");
+            server.info("Query:" + sqlQuery.toString());
+            resultSet = statement.executeQuery(sqlQuery.toString());
+            while(resultSet.next())
+            {
+                IdSAPBranch = resultSet.getString("sucursal_SAP");
+                
+            }
+            
+            resultSet.close();
+            statement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            IdSAPBranch = ""; 
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return IdSAPBranch;
     }
     
     public ArrayList<Link> joinByRemissionAndAdditionalOrder(IJidokaServer<?> server, String url, int idFolio)
@@ -3415,6 +3459,54 @@ public class DatabaseUtilities {
             server.error(sw.toString());
         }
         return listResult; 
+    }
+    
+    public static void deleteTableInformation(IJidokaServer<?> server, String url, String tableName) {
+        try {
+            Connection connection = connectDatabase(server, url);
+            Statement statement = connection.createStatement();
+            StringBuilder deleteTableQuery = new StringBuilder();
+            deleteTableQuery.append("DELETE FROM ");
+            deleteTableQuery.append(tableName);
+            deleteTableQuery.append(";");
+            statement.executeUpdate(deleteTableQuery.toString());
+            statement.close();
+            connection.close();
+            //System.out.println("Creacion de Tabla Exitosamente");
+            server.info("Delete Information from Table " + tableName + "was successful");
+        } catch (SQLException e) {
+            //System.out.println("Error: " + e.getMessage());
+            server.error(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+            
+        }
+    }
+    
+    public static void resetPrimaryKey(IJidokaServer<?> server, String url, String tableName) {
+        try {
+            Connection connection = connectDatabase(server, url);
+            Statement statement = connection.createStatement();
+            StringBuilder resetPrimaryKeyQuery = new StringBuilder();
+            resetPrimaryKeyQuery.append("DELETE FROM sqlite_sequence WHERE name='");
+            resetPrimaryKeyQuery.append(tableName);
+            resetPrimaryKeyQuery.append("';");
+            statement.executeUpdate(resetPrimaryKeyQuery.toString());
+            statement.close();
+            connection.close();
+            //System.out.println("Creacion de Tabla Exitosamente");
+            server.info("Delete Information from Table " + tableName + "was successful");
+        } catch (SQLException e) {
+            //System.out.println("Error: " + e.getMessage());
+            server.error(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+            
+        }
     }
     
     

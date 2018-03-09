@@ -5,6 +5,8 @@
  */
 package com.dobleo.rpa.file;
 
+import com.dobleo.rpa.models.Link;
+import com.dobleo.rpa.models.Sale;
 import com.monitorjbl.xlsx.StreamingReader;
 import com.novayre.jidoka.client.api.IJidokaServer;
 import java.awt.Color;
@@ -25,6 +27,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IgnoredErrorType;
@@ -33,7 +36,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFDataFormat;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -334,7 +339,6 @@ public class OutputExcelFile {
             FileOutputStream outputStream = null;
             Validation validation = null;
             String currencyColumnContent = ""; 
-            String dateColumnContent = "";
             NumberFormat currencyFormat = null; 
             SimpleDateFormat simpleDateFormat = null; 
             Date date = null; 
@@ -591,6 +595,618 @@ public class OutputExcelFile {
             book.write(outputStream);
             book.close();
            
+            
+        }
+        catch(Exception er)
+        {
+            server.error(er.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            er.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
+    public static void createRefundSheet(IJidokaServer<?> server, String fileName, ArrayList<String> columnNames, ArrayList<Perception> refunds, ArrayList<String> idSAPBranch)
+    {
+        try
+        {
+            boolean checkHeader = false;
+            int countRow = 0; 
+            int countIdSapBranch = 0;
+            int firstRowIndex = 0;
+            int lastRowIndex = 0;
+            int lastFreezeRowIndex = 0; 
+            double currencyContent = 0.0; 
+            Row row = null;
+            Cell cell = null;
+            XSSFCellStyle cellStyle = null;
+            XSSFCellStyle cellDateStyle = null;
+            XSSFCellStyle currencyStyle = null;
+            XSSFCellStyle sumStyle = null;
+            XSSFCellStyle branchStyle = null;
+            
+            CellStyle totalColumnStyle = null;
+            CellStyle totalStyle = null;
+            
+            XSSFColor columnColor = null;
+            XSSFColor totalColor = null;
+            XSSFColor backgroundColor = null;
+            XSSFFont font = null;
+            XSSFFont totalFont = null;
+            
+            CreationHelper createHelper = null; 
+            FileOutputStream outputStream = null;
+            Validation validation = null;
+            String currencyColumnContent = ""; 
+            NumberFormat currencyFormat = null; 
+            SimpleDateFormat simpleDateFormat = null; 
+            Date date = null; 
+            StringBuilder excelFilePath = new StringBuilder(); 
+            excelFilePath.append(server.getCurrentDir());
+            excelFilePath.append("\\");
+            excelFilePath.append(fileName);
+            excelFilePath.append(".xlsx");
+            
+            FileInputStream inputFile =new FileInputStream(new File(excelFilePath.toString()));
+            XSSFWorkbook book = new XSSFWorkbook(inputFile);
+            XSSFSheet refundSheet = book.createSheet("Devoluciones");
+            
+            
+            totalColor = new XSSFColor(new Color(221, 0, 51));
+            cellStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setBold(true);
+            font.setFontName("Arial");
+            font.setFontHeight(9);
+            
+            cellStyle.setFont(font);
+            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            
+            lastFreezeRowIndex = countRow; 
+            columnColor = new XSSFColor(new Color(119, 119, 170)); 
+            
+            cellStyle = book.createCellStyle();
+
+            font = book.createFont();
+            font.setColor(columnColor);
+            font.setBold(true);
+            font.setFontName("Arial");
+            font.setFontHeightInPoints((short) 9);
+            cellStyle.setFont(font);
+            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            row = refundSheet.createRow(countRow); 
+            for(int b = 0; b < columnNames.size(); b++)
+            {
+                cell = row.createCell(b); 
+                cell.setCellValue(columnNames.get(b));
+                cell.setCellStyle(cellStyle);
+            }
+            
+            cellStyle = book.createCellStyle();
+            backgroundColor = new XSSFColor(new Color(255, 192, 0));
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            cellStyle.setFont(font);
+            cellStyle.setFillForegroundColor(backgroundColor);
+            cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            branchStyle = book.createCellStyle(); 
+            branchStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            cellDateStyle = book.createCellStyle();
+            createHelper = book.getCreationHelper();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            cellDateStyle.setFont(font);
+            cellDateStyle.setFillForegroundColor(backgroundColor);
+            cellDateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellDateStyle.setAlignment(HorizontalAlignment.CENTER);
+            cellDateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-mmm-yy"));
+            
+            currencyStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            currencyStyle.setDataFormat((short)8);
+            currencyStyle.setFont(font);
+            currencyStyle.setFillForegroundColor(backgroundColor);
+            currencyStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            currencyStyle.setAlignment(HorizontalAlignment.CENTER);
+            currencyStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            sumStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            sumStyle.setDataFormat((short)8);
+            sumStyle.setFont(font);
+            sumStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            totalColumnStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setBold(true);
+            font.setFontName("Arial");
+            font.setColor(totalColor);
+            font.setFontHeight(9);
+            totalColumnStyle.setDataFormat((short)8);
+            totalColumnStyle.setFont(font);
+            totalColumnStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            totalStyle = book.createCellStyle();
+            totalFont = book.createFont();
+            totalFont.setFontName("Arial");
+            totalFont.setFontHeight(7.5);
+            totalStyle.setFont(totalFont);
+            totalStyle.setAlignment(HorizontalAlignment.LEFT);
+            
+            firstRowIndex = countRow + 1;
+            
+            countRow = countRow + 1; 
+            for(Perception perception: refunds)
+            {
+                row = refundSheet.createRow(countRow);
+                for(int b = 0; b < 12; b++)
+                {
+                    switch(b)
+                    {
+                        case 0: cell = row.createCell(b); cell.setCellValue(perception.getMtvo()); cell.setCellStyle(cellStyle); break;
+                        case 1: cell = row.createCell(b); cell.setCellValue(perception.getTienda()); cell.setCellStyle(cellStyle); break;
+                        case 2: cell = row.createCell(b); cell.setCellValue(perception.getNumeroRecibo()); cell.setCellStyle(cellStyle); break;
+                        case 3: cell = row.createCell(b); cell.setCellValue(perception.getNumeroOrden()); cell.setCellStyle(cellStyle); break;
+                        case 4: cell = row.createCell(b); cell.setCellValue(perception.getNumeroPedidoAdicional()); cell.setCellStyle(cellStyle); break;
+                        case 5: cell = row.createCell(b); cell.setCellValue(perception.getNumeroRemision()); cell.setCellStyle(cellStyle); break;
+                        case 6: cell = row.createCell(b); simpleDateFormat = null; simpleDateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US); date = null;  date = simpleDateFormat.parse(perception.getFecha()); cell.setCellValue(date); cell.setCellStyle(cellDateStyle); break;
+                        case 7: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = perception.getValor().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break;
+                        case 8: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = perception.getIva().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break;
+                        case 9: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = perception.getNeto().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break;
+                        case 10: cell = row.createCell(b); break;
+                        case 11: cell = row.createCell(b); cell.setCellValue(idSAPBranch.get(countIdSapBranch)); cell.setCellStyle(branchStyle); break;
+                    }
+                }
+                countRow = countRow + 1;
+                countIdSapBranch = countIdSapBranch + 1; 
+            }
+            
+            row = refundSheet.createRow(countRow);
+            lastRowIndex = countRow + 1;
+            
+            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 2, 5), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 7, 11), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            
+            countRow = countRow + 1; 
+            
+            row = refundSheet.createRow(countRow);
+            
+            for(int c = 6; c < 10; c++)
+            {
+                switch(c)
+                {
+                    case 6: cell = row.createCell(c); cell.setCellValue("TOTAL:"); cell.setCellStyle(totalColumnStyle); break; 
+                    case 7: cell = row.createCell(c); cell.setCellType(CellType.FORMULA); cell.setCellFormula("SUM(H"+ firstRowIndex +":H"+ lastRowIndex +")"); cell.setCellStyle(totalColumnStyle); break;
+                    case 8: cell = row.createCell(c); cell.setCellType(CellType.FORMULA); cell.setCellFormula("SUM(I"+ firstRowIndex +":I"+ lastRowIndex +")"); cell.setCellStyle(totalColumnStyle); break;
+                    case 9: cell = row.createCell(c); cell.setCellType(CellType.FORMULA); cell.setCellFormula("SUM(J"+ firstRowIndex +":J"+ lastRowIndex +")"); cell.setCellStyle(totalColumnStyle); break;
+                }
+            }
+            
+            
+            //Evalua todas las formulas para que funcione el autoSizeColumn
+
+            
+            XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
+            
+            for(int d = 0; d < columnNames.size(); d++)
+            {
+                refundSheet.autoSizeColumn(d);
+            }
+            
+            
+            for(int e = 6; e <= 10; e++)
+            {
+                switch(e)
+                {
+                    case 6: cell = row.getCell(e); cell.setCellValue(""); cell.setCellStyle(null); break;
+                    case 7: cell = row.getCell(e); row.removeCell(cell); break;
+                    case 8: cell = row.getCell(e); row.removeCell(cell); break;
+                    case 9: cell = row.getCell(e); cell.setCellStyle(sumStyle); break;
+                }
+            }
+            
+            refundSheet.setAutoFilter(new CellRangeAddress(firstRowIndex - 2, firstRowIndex - 2, 0, columnNames.size() - 1));
+            
+            row = refundSheet.getRow(0);
+            cell = row.getCell(10); cell.setCellValue("");
+            
+            
+            
+            
+            outputStream = new FileOutputStream(excelFilePath.toString());
+            book.write(outputStream);
+            book.close();
+           
+            
+        }
+        catch(Exception er)
+        {
+            server.error(er.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            er.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
+    public static void createSaleSheet(IJidokaServer<?> server, String fileName, ArrayList<Sale> sales)
+    {
+        try
+        {
+            int countRow = 0;
+            int lastFreezeRowIndex;
+            Row row = null;
+            Cell cell = null;
+            XSSFCellStyle cellStyle = null;
+            XSSFCellStyle cellSaleStyle = null; 
+            XSSFCellStyle cellClientStyle = null; 
+            CellStyle currencyStyle = null; 
+            
+            XSSFColor whiteColor = null;
+            XSSFColor saleBackgroundColor = null;
+            XSSFColor clientBackgroundColor = null;
+            XSSFFont font = null;
+            
+
+            FileOutputStream outputStream = null;
+            SimpleDateFormat simpleDateFormat = null;
+            Date date = null; 
+            String currencyColumnContent = ""; 
+            String[] headerColumns = {"Remisiones", "Cartera", "Diferencia"}; 
+            String[] columnNames = {"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura / Remisión Sicav", "Importe", "Cliente", "Ref.fact.", "Referencia", "Clv.ref.2", "Clv.ref.3", "Fecha doc.", "Venc.neto", "ImpteML", "Ce.", "Div."};
+            NumberFormat currencyFormat = null; 
+            StringBuilder excelFilePath = new StringBuilder(); 
+            excelFilePath.append(server.getCurrentDir());
+            excelFilePath.append("\\");
+            excelFilePath.append(fileName);
+            excelFilePath.append(".xlsx");
+            
+            CreationHelper createHelper = null; 
+            FileInputStream inputFile =new FileInputStream(new File(excelFilePath.toString())); 
+            XSSFWorkbook book = new XSSFWorkbook(inputFile);
+            XSSFSheet saleSheet = book.createSheet("Venta");
+            
+            whiteColor = new XSSFColor(Color.WHITE); 
+            
+            saleBackgroundColor = new XSSFColor(new Color(102, 0, 51)); 
+            clientBackgroundColor = new XSSFColor(new Color(32, 55, 100)); 
+            cellStyle = book.createCellStyle();
+
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellStyle.setFont(font);
+            cellStyle.setAlignment(HorizontalAlignment.LEFT);
+            
+            cellSaleStyle = book.createCellStyle();
+
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setColor(whiteColor);
+            font.setFontHeight(11);
+            cellSaleStyle.setFont(font);
+            cellSaleStyle.setFillForegroundColor(saleBackgroundColor);
+            cellSaleStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellSaleStyle.setAlignment(HorizontalAlignment.LEFT);
+            
+            cellClientStyle = book.createCellStyle();
+            cellClientStyle.setFont(font);
+            cellClientStyle.setFillForegroundColor(clientBackgroundColor);
+            cellClientStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellClientStyle.setAlignment(HorizontalAlignment.LEFT);
+            
+            row = saleSheet.createRow(countRow);
+            
+            for(int a = 0; a < headerColumns.length; a++)
+            {
+                cell = row.createCell(8);
+                cell.setCellValue(headerColumns[a]);
+                cell.setCellStyle(cellStyle);
+                countRow = countRow + 1;
+                row = saleSheet.createRow(countRow);
+            }
+            
+            for(int b = 0; b < columnNames.length; b++)
+            {
+                cell = row.createCell(b); 
+                cell.setCellValue(columnNames[b]);
+                if(b <= 8)
+                {
+                    cell.setCellStyle(cellSaleStyle);
+                }
+                else 
+                {
+                    cell.setCellStyle(cellClientStyle);
+                }
+            }
+            
+            lastFreezeRowIndex = countRow + 1; 
+            saleSheet.createFreezePane(0, lastFreezeRowIndex);
+            saleSheet.setZoom(75);
+            /*firstRowIndex = countRow + 1; 
+            
+            cellStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            cellStyle.setFont(font);
+            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            cellDateStyle = book.createCellStyle();
+            createHelper = book.getCreationHelper();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            cellDateStyle.setFont(font);
+            cellDateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-mmm-yy"));
+            cellDateStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            currencyStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            currencyStyle.setFont(font);
+            currencyStyle.setDataFormat((short)8);
+            currencyStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            
+            for(Perception refund: refunds)
+            {
+                countRow = countRow + 1; 
+                row = refundSheet.createRow(countRow);
+                for(int b = 0; b < 12; b++)
+                {
+                    switch(b)
+                    {
+                        case 0: cell = row.createCell(b); cell.setCellValue(refund.getMtvo()); cell.setCellStyle(cellStyle); break;
+                        case 1: cell = row.createCell(b); cell.setCellValue(refund.getTienda()); cell.setCellStyle(cellStyle); break;
+                        case 2: cell = row.createCell(b); cell.setCellValue(refund.getNumeroRecibo()); cell.setCellStyle(cellStyle); break;
+                        case 3: cell = row.createCell(b); cell.setCellValue(refund.getNumeroOrden()); cell.setCellStyle(cellStyle); break;
+                        case 4: cell = row.createCell(b); cell.setCellValue(refund.getNumeroPedidoAdicional()); cell.setCellStyle(cellStyle); break;
+                        case 5: cell = row.createCell(b); cell.setCellValue(refund.getNumeroRemision()); cell.setCellStyle(cellStyle); break;
+                        case 6: cell = row.createCell(b); simpleDateFormat = null; simpleDateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US); date = null;  date = simpleDateFormat.parse(refund.getFecha()); cell.setCellValue(date); cell.setCellStyle(cellDateStyle); break;
+                        case 7: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getValor().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break; 
+                        case 8: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getIva().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break; 
+                        case 9: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getNeto().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break;
+                    }
+                }
+            }
+            
+            lastRowIndex = countRow + 1; 
+            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 2, 5), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 7, 9), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            
+            row = refundSheet.createRow(countRow); 
+            
+            countRow = countRow + 1; 
+            
+            row = refundSheet.createRow(countRow);
+            
+            cell = row.createCell(9); cell.setCellType(CellType.FORMULA); cell.setCellFormula("SUM(I"+ firstRowIndex +":I"+ lastRowIndex +")"); cell.setCellStyle(currencyStyle);
+            
+            XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
+            
+            for(int d = 0; d < columnNames.size(); d++)
+            {
+                refundSheet.autoSizeColumn(d);
+            }*/
+            
+            XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
+            
+            for(int d = 0; d < columnNames.length; d++)
+            {
+                saleSheet.autoSizeColumn(d);
+            }
+            
+            outputStream = new FileOutputStream(excelFilePath.toString());
+            book.write(outputStream);
+            book.close();
+            
+        }
+        catch(Exception er)
+        {
+            server.error(er.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            er.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
+    public static void createMoorageSheet(IJidokaServer<?> server, String fileName, ArrayList<Link> links)
+    {
+        try
+        {
+            int countRow = 0;
+            int lastFreezeRowIndex;
+            Row row = null;
+            Cell cell = null;
+            XSSFCellStyle cellStyle = null;
+            XSSFCellStyle cellSaleStyle = null; 
+            XSSFCellStyle cellStoreStyle = null; 
+            XSSFCellStyle cellPercentageStyle = null;
+            
+            XSSFColor whiteColor = null;
+            XSSFColor saleBackgroundColor = null;
+            XSSFColor storeBackgroundColor = null;
+            XSSFColor percentageBackgroundColor = null;
+            
+            XSSFFont font = null;
+            
+
+            FileOutputStream outputStream = null;
+            SimpleDateFormat simpleDateFormat = null;
+            Date date = null; 
+            String currencyColumnContent = ""; 
+            String[] columnNames = {"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura", "Remisión Sicav", "Importe", "Importe", "Pedido Adicional", "CR Tienda", "Num de Remisión", "Fecha", "Neto", "Neto", "Diferencia", "%", "Diferencia", "Destinatario", "Tipo de Busqueda"};
+            NumberFormat currencyFormat = null; 
+            StringBuilder excelFilePath = new StringBuilder(); 
+            excelFilePath.append(server.getCurrentDir());
+            excelFilePath.append("\\");
+            excelFilePath.append(fileName);
+            excelFilePath.append(".xlsx");
+            
+            CreationHelper createHelper = null; 
+            FileInputStream inputFile =new FileInputStream(new File(excelFilePath.toString())); 
+            XSSFWorkbook book = new XSSFWorkbook(inputFile);
+            XSSFSheet moorageSheet = book.createSheet("Amarre");
+            
+            whiteColor = new XSSFColor(Color.WHITE); 
+            saleBackgroundColor = new XSSFColor(new Color(102, 0, 51)); 
+            storeBackgroundColor = new XSSFColor(new Color(146, 208, 80)); 
+            percentageBackgroundColor = new XSSFColor(new Color(32, 55, 100)); 
+            
+            cellStyle = book.createCellStyle();
+
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellStyle.setFont(font);
+            cellStyle.setAlignment(HorizontalAlignment.LEFT);
+            
+            cellSaleStyle = book.createCellStyle();
+
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setColor(whiteColor);
+            font.setFontHeight(11);
+            cellSaleStyle.setFont(font);
+            cellSaleStyle.setFillForegroundColor(saleBackgroundColor);
+            cellSaleStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellSaleStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            cellStoreStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellStoreStyle.setFont(font);
+            cellStoreStyle.setFillForegroundColor(storeBackgroundColor);
+            cellStoreStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellStoreStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            cellPercentageStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setColor(whiteColor);
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellPercentageStyle.setFont(font);
+            cellPercentageStyle.setFillForegroundColor(percentageBackgroundColor);
+            cellPercentageStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cellPercentageStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            row = moorageSheet.createRow(countRow);
+            
+            for(int a = 0; a < columnNames.length; a++)
+            {
+                cell = row.createCell(a); 
+                cell.setCellValue(columnNames[a]);
+                if(a <= 10 || a == 18 || a == 21)
+                {
+                    cell.setCellStyle(cellSaleStyle);
+                }
+                else if(a > 11 && a < 17)
+                {
+                    cell.setCellStyle(cellStoreStyle);
+                }
+                else if(a == 19)
+                {
+                    cell.setCellStyle(cellPercentageStyle);
+                }
+            }
+            
+            lastFreezeRowIndex = countRow + 1; 
+            moorageSheet.createFreezePane(0, lastFreezeRowIndex);
+            moorageSheet.setZoom(75);
+            /*firstRowIndex = countRow + 1; 
+            
+            cellStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            cellStyle.setFont(font);
+            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            cellDateStyle = book.createCellStyle();
+            createHelper = book.getCreationHelper();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            cellDateStyle.setFont(font);
+            cellDateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-mmm-yy"));
+            cellDateStyle.setAlignment(HorizontalAlignment.CENTER);
+            
+            currencyStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Arial");
+            font.setFontHeight(7.5);
+            currencyStyle.setFont(font);
+            currencyStyle.setDataFormat((short)8);
+            currencyStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            
+            for(Perception refund: refunds)
+            {
+                countRow = countRow + 1; 
+                row = refundSheet.createRow(countRow);
+                for(int b = 0; b < 12; b++)
+                {
+                    switch(b)
+                    {
+                        case 0: cell = row.createCell(b); cell.setCellValue(refund.getMtvo()); cell.setCellStyle(cellStyle); break;
+                        case 1: cell = row.createCell(b); cell.setCellValue(refund.getTienda()); cell.setCellStyle(cellStyle); break;
+                        case 2: cell = row.createCell(b); cell.setCellValue(refund.getNumeroRecibo()); cell.setCellStyle(cellStyle); break;
+                        case 3: cell = row.createCell(b); cell.setCellValue(refund.getNumeroOrden()); cell.setCellStyle(cellStyle); break;
+                        case 4: cell = row.createCell(b); cell.setCellValue(refund.getNumeroPedidoAdicional()); cell.setCellStyle(cellStyle); break;
+                        case 5: cell = row.createCell(b); cell.setCellValue(refund.getNumeroRemision()); cell.setCellStyle(cellStyle); break;
+                        case 6: cell = row.createCell(b); simpleDateFormat = null; simpleDateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US); date = null;  date = simpleDateFormat.parse(refund.getFecha()); cell.setCellValue(date); cell.setCellStyle(cellDateStyle); break;
+                        case 7: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getValor().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break; 
+                        case 8: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getIva().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break; 
+                        case 9: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getNeto().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break;
+                    }
+                }
+            }
+            
+            lastRowIndex = countRow + 1; 
+            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 2, 5), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 7, 9), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            
+            row = refundSheet.createRow(countRow); 
+            
+            countRow = countRow + 1; 
+            
+            row = refundSheet.createRow(countRow);
+            
+            cell = row.createCell(9); cell.setCellType(CellType.FORMULA); cell.setCellFormula("SUM(I"+ firstRowIndex +":I"+ lastRowIndex +")"); cell.setCellStyle(currencyStyle);
+            
+            XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
+            
+            for(int d = 0; d < columnNames.size(); d++)
+            {
+                refundSheet.autoSizeColumn(d);
+            }*/
+            
+            XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
+            
+            for(int d = 0; d < columnNames.length; d++)
+            {
+                moorageSheet.autoSizeColumn(d);
+            }
+            
+            outputStream = new FileOutputStream(excelFilePath.toString());
+            book.write(outputStream);
+            book.close();
             
         }
         catch(Exception er)

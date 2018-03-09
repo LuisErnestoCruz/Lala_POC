@@ -281,17 +281,59 @@ public class MyRobot implements IRobot {
         public void createExcelFile() throws Exception
         {
             server.info("Create Excel File: " + excelFileName);
-            Perception perception = null;
-            Validation validation = null;
+            Rule rule = null; 
+            ArrayList<String> columnNames = null;
+            ArrayList<String> idSAPBranch = null;
+            ArrayList<Header> headers = null;
+            ArrayList<Perception> perceptions = null;
+            ArrayList<Perception> invalidPerceptions = null;
+            ArrayList<Perception> refunds = null;
+            if(outputExcelFile != null && listEmailMessages != null && readEmail != null)
+            {
+                if(listEmailMessages.size() > 0)
+                {
+                    headers = readEmail.getHeaders(); 
+                    columnNames = readEmail.getColumnNames();
+                    perceptions = readEmail.getPerceptions();
+                    invalidPerceptions = readEmail.getInvalidPerceptions(); 
+                    refunds = readEmail.getRefunds();
+                    if(headers != null && columnNames != null && perceptions != null)
+                    {
+                        if(headers.size() > 0 && columnNames.size() > 0 && perceptions.size() > 0)
+                        {
+                            rule = new Rule();
+                            idSAPBranch = new ArrayList<String>();
+                            server.info("Create Folio Sheet into current Excel File"); 
+                            outputExcelFile.createFolioSheet(server, excelFileName, columnNames, headers, perceptions); 
+                            rule.asignRule(invalidPerceptions);
+                            server.info("Create " + excelFileName.substring(excelFileName.lastIndexOf("_") + 1, excelFileName.length()) + " Sheet into current Excel File"); 
+                            outputExcelFile.createFolioNumberSheet(server, excelFileName, columnNames, headers, perceptions, rule.getListPerception()); 
+                            
+                            columnNames.add("Sucursal");
+                            columnNames.add("Sucursal");
+                            for(Perception refund: refunds)
+                            {
+                                idSAPBranch.add(databaseUtilities.getIdSAPBranch(server, databasePath, TABLE_BRANCH, refund.getTienda()));
+                            }
+                            
+                            outputExcelFile.createRefundSheet(server, excelFileName, columnNames, refunds, idSAPBranch);
+                            outputExcelFile.createSaleSheet(server, excelFileName, null); 
+                            outputExcelFile.createMoorageSheet(server, excelFileName, null); 
+                            server.info("Success creation of Excel File: " + excelFileName);
+                        }
+                    }
+                }
+            }
+        }
+        
+        public void createFolioNumberSheet() throws Exception
+        {
+            server.info("Create Folio Number Sheet into File: " + excelFileName);
             Rule rule = null; 
             ArrayList<String> columnNames = null;
             ArrayList<Header> headers = null;
             ArrayList<Perception> perceptions = null;
             ArrayList<Perception> invalidPerceptions = null;
-            ArrayList<Perception> replaceInvalidPerceptions = null;
-            ArrayList<Perception> receptionsIssue = null;
-            ArrayList<Perception> replaceReceptionsIssue = null;
-            ArrayList<Perception> refundsIssue = null;
             if(outputExcelFile != null && listEmailMessages != null && readEmail != null)
             {
                 if(listEmailMessages.size() > 0)
@@ -305,14 +347,47 @@ public class MyRobot implements IRobot {
                     {
                         if(headers.size() > 0 && columnNames.size() > 0 && perceptions.size() > 0)
                         {
-                            rule = new Rule();
-                            server.info("Create Folio Sheet into current Excel File"); 
-                            outputExcelFile.createFolioSheet(server, excelFileName, columnNames, headers, perceptions); 
                             rule.asignRule(invalidPerceptions);
                             server.info("Create " + excelFileName.substring(excelFileName.lastIndexOf("_") + 1, excelFileName.length()) + " Sheet into current Excel File"); 
                             outputExcelFile.createFolioNumberSheet(server, excelFileName, columnNames, headers, perceptions, rule.getListPerception()); 
+                            server.info("Success creation of Sheet " + excelFileName.substring(excelFileName.lastIndexOf("_") + 1, excelFileName.length()) +" into File: " + excelFileName);
+                        }
+                    }
+                }
+            }
+        }
+        
+        public void createRefundSheet() throws Exception
+        {
+            server.info("Create Folio Number Sheet into File: " + excelFileName);
+            Rule rule = null; 
+            ArrayList<String> columnNames = null;
+            ArrayList<String> idSAPBranch = null;
+            ArrayList<Header> headers = null;
+            ArrayList<Perception> perceptions = null;
+            ArrayList<Perception> refunds = null;
+            if(outputExcelFile != null && listEmailMessages != null && readEmail != null)
+            {
+                if(listEmailMessages.size() > 0)
+                {
+                    headers = readEmail.getHeaders(); 
+                    columnNames = readEmail.getColumnNames();
+                    perceptions = readEmail.getPerceptions();
+                    refunds = readEmail.getRefunds();
+                    if(headers != null && columnNames != null && perceptions != null)
+                    {
+                        if(headers.size() > 0 && columnNames.size() > 0 && perceptions.size() > 0)
+                        {
+                            columnNames.add("Sucursal");
+                            columnNames.add("Sucursal");
+                            for(Perception refund: refunds)
+                            {
+                                idSAPBranch.add(databaseUtilities.getIdSAPBranch(server, databasePath, TABLE_BRANCH, refund.getTienda()));
+                            }
                             
-                            server.info("Success creation of Excel File: " + excelFileName);
+                            outputExcelFile.createRefundSheet(server, excelFileName, columnNames, refunds, idSAPBranch);
+                            
+                            server.info("Success creation of Sheet Devoluciones into File: " + excelFileName);
                         }
                     }
                 }
@@ -2988,6 +3063,27 @@ public class MyRobot implements IRobot {
 	 * @return
 	 * @throws Exception
 	 */
+        
+        public void cleanDatabaseInformation()
+        {
+            server.info("Cleaning the database for the entry of new information"); 
+            if(databaseUtilities != null)
+            {
+                server.info("Cleaning the Table " + TABLE_DOCUMENTS);
+                databaseUtilities.deleteTableInformation(server, databasePath, TABLE_DOCUMENTS);
+                server.info("Reset the Primary Key from Table " + TABLE_DOCUMENTS);
+                databaseUtilities.resetPrimaryKey(server, databasePath, TABLE_DOCUMENTS); 
+                server.info("Cleaning the Table " + TABLE_RECEPTIONS);
+                databaseUtilities.deleteTableInformation(server, databasePath, TABLE_RECEPTIONS);
+                server.info("Reset the Primary Key from Table " + TABLE_RECEPTIONS);
+                databaseUtilities.resetPrimaryKey(server, databasePath, TABLE_RECEPTIONS);
+                server.info("Cleaning the Table " + TABLE_SALES);
+                databaseUtilities.deleteTableInformation(server, databasePath, TABLE_SALES);
+                server.info("Reset the Primary Key from Table " + TABLE_SALES);
+                databaseUtilities.resetPrimaryKey(server, databasePath, TABLE_SALES);
+            }
+        }
+        
 	public void openNotepad() throws Exception {
 		
 		windows.pause(PAUSE);
@@ -3065,6 +3161,7 @@ public class MyRobot implements IRobot {
             if(listEmailMessages != null)
             {
                 server.setCurrentItemResultToOK();
+                readEmail.sendEmailWithAttachment(excelFileName); 
                 if(currentItemIndex == listEmailMessages.size()) 
                 {
                     response = "no"; 
