@@ -5,6 +5,7 @@
  */
 package com.dobleo.rpa.file;
 
+import com.dobleo.rpa.models.Folio;
 import com.dobleo.rpa.models.Link;
 import com.dobleo.rpa.models.Sale;
 import com.monitorjbl.xlsx.StreamingReader;
@@ -16,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,6 +30,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -322,6 +326,7 @@ public class OutputExcelFile {
             int lastRowIndex = 0;
             int lastFreezeRowIndex = 0; 
             double currencyContent = 0.0; 
+            String folioType = null;
             Row row = null;
             Cell cell = null;
             CellStyle cellStyle = null;
@@ -847,26 +852,34 @@ public class OutputExcelFile {
         {
             int countRow = 0;
             int lastFreezeRowIndex;
+            int lastRowIndex = 0;
+            int firstRowIndex = 0;
             Row row = null;
             Cell cell = null;
             XSSFCellStyle cellStyle = null;
+            XSSFCellStyle cellDateStyle = null;
             XSSFCellStyle cellSaleStyle = null; 
             XSSFCellStyle cellClientStyle = null; 
-            CellStyle currencyStyle = null; 
+            XSSFCellStyle cellDecimalStyle = null; 
+            XSSFCellStyle cellNumberStyle = null;
             
             XSSFColor whiteColor = null;
             XSSFColor saleBackgroundColor = null;
             XSSFColor clientBackgroundColor = null;
             XSSFFont font = null;
-            
+            XSSFDataFormat dataFormat = null;
 
             FileOutputStream outputStream = null;
             SimpleDateFormat simpleDateFormat = null;
+            SimpleDateFormat newSimpleDateFormat = null;
             Date date = null; 
+            Date newDate = null;
+            String newDateFormat = "";
             String currencyColumnContent = ""; 
             String[] headerColumns = {"Remisiones", "Cartera", "Diferencia"}; 
             String[] columnNames = {"Fecha", "Pedido Adicional", "Factura", "Folio", "Solicitante", "Cedis", "Destinatario", "Nombre del Destinatario", "Factura / Remisión Sicav", "Importe", "Cliente", "Ref.fact.", "Referencia", "Clv.ref.2", "Clv.ref.3", "Fecha doc.", "Venc.neto", "ImpteML", "Ce.", "Div."};
             NumberFormat currencyFormat = null; 
+            DecimalFormat decimalFormat = new DecimalFormat("#.00");
             StringBuilder excelFilePath = new StringBuilder(); 
             excelFilePath.append(server.getCurrentDir());
             excelFilePath.append("\\");
@@ -922,7 +935,7 @@ public class OutputExcelFile {
             {
                 cell = row.createCell(b); 
                 cell.setCellValue(columnNames[b]);
-                if(b <= 8)
+                if(b <= 9)
                 {
                     cell.setCellStyle(cellSaleStyle);
                 }
@@ -934,74 +947,70 @@ public class OutputExcelFile {
             
             lastFreezeRowIndex = countRow + 1; 
             saleSheet.createFreezePane(0, lastFreezeRowIndex);
-            saleSheet.setZoom(75);
-            /*firstRowIndex = countRow + 1; 
-            
-            cellStyle = book.createCellStyle();
-            font = book.createFont();
-            font.setFontName("Arial");
-            font.setFontHeight(7.5);
-            cellStyle.setFont(font);
-            cellStyle.setAlignment(HorizontalAlignment.CENTER);
             
             cellDateStyle = book.createCellStyle();
             createHelper = book.getCreationHelper();
             font = book.createFont();
-            font.setFontName("Arial");
-            font.setFontHeight(7.5);
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
             cellDateStyle.setFont(font);
-            cellDateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-mmm-yy"));
+            cellDateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/mm/yyyy"));
             cellDateStyle.setAlignment(HorizontalAlignment.CENTER);
             
-            currencyStyle = book.createCellStyle();
+            cellNumberStyle = book.createCellStyle();
             font = book.createFont();
-            font.setFontName("Arial");
-            font.setFontHeight(7.5);
-            currencyStyle.setFont(font);
-            currencyStyle.setDataFormat((short)8);
-            currencyStyle.setAlignment(HorizontalAlignment.RIGHT);
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellNumberStyle.setFont(font);
+            cellNumberStyle.setAlignment(HorizontalAlignment.RIGHT);
+            
+            cellDecimalStyle = book.createCellStyle();
+            dataFormat = book.createDataFormat();
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellDecimalStyle.setFont(font);
+            cellDecimalStyle.setDataFormat(dataFormat.getFormat("#,##0.00"));
+            cellDecimalStyle.setAlignment(HorizontalAlignment.RIGHT);
             
             
-            for(Perception refund: refunds)
+            cellStyle = book.createCellStyle();
+            font = book.createFont();
+            font.setFontName("Calibri");
+            font.setFontHeight(11);
+            cellStyle.setFont(font);
+            //cellStyle.setAlignment(HorizontalAlignment.CENTER);
+            firstRowIndex = countRow + 1;
+            
+            for(Sale sale: sales)
             {
                 countRow = countRow + 1; 
-                row = refundSheet.createRow(countRow);
-                for(int b = 0; b < 12; b++)
+                row = saleSheet.createRow(countRow);
+                for(int b = 0; b < 10; b++)
                 {
                     switch(b)
                     {
-                        case 0: cell = row.createCell(b); cell.setCellValue(refund.getMtvo()); cell.setCellStyle(cellStyle); break;
-                        case 1: cell = row.createCell(b); cell.setCellValue(refund.getTienda()); cell.setCellStyle(cellStyle); break;
-                        case 2: cell = row.createCell(b); cell.setCellValue(refund.getNumeroRecibo()); cell.setCellStyle(cellStyle); break;
-                        case 3: cell = row.createCell(b); cell.setCellValue(refund.getNumeroOrden()); cell.setCellStyle(cellStyle); break;
-                        case 4: cell = row.createCell(b); cell.setCellValue(refund.getNumeroPedidoAdicional()); cell.setCellStyle(cellStyle); break;
-                        case 5: cell = row.createCell(b); cell.setCellValue(refund.getNumeroRemision()); cell.setCellStyle(cellStyle); break;
-                        case 6: cell = row.createCell(b); simpleDateFormat = null; simpleDateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US); date = null;  date = simpleDateFormat.parse(refund.getFecha()); cell.setCellValue(date); cell.setCellStyle(cellDateStyle); break;
-                        case 7: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getValor().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break; 
-                        case 8: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getIva().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break; 
-                        case 9: cell = row.createCell(b); currencyFormat = NumberFormat.getCurrencyInstance(Locale.US); currencyColumnContent = ""; currencyColumnContent = refund.getNeto().replace("$", ""); currencyColumnContent =  currencyColumnContent.replace(",", ""); currencyContent = 0; currencyContent = Double.parseDouble(currencyColumnContent); cell.setCellValue(currencyContent); cell.setCellStyle(currencyStyle); break;
+                        case 0: cell = row.createCell(b); simpleDateFormat = null; simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US); date = null;  date = simpleDateFormat.parse(sale.getFecha()); newSimpleDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); newDateFormat = newSimpleDateFormat.format(date); newDate = newSimpleDateFormat.parse(newDateFormat); cell.setCellValue(newDate); cell.setCellStyle(cellDateStyle); break;
+                        case 1: cell = row.createCell(b); cell.setCellValue(sale.getPedidoAdicional()); cell.setCellStyle(cellNumberStyle); break;
+                        case 2: cell = row.createCell(b); cell.setCellValue(sale.getFactura()); cell.setCellStyle(cellNumberStyle); break;
+                        case 3: cell = row.createCell(b); cell.setCellValue(sale.getFolio()); cell.setCellStyle(cellStyle); break;
+                        case 4: cell = row.createCell(b); cell.setCellValue(sale.getSolicitante()); cell.setCellStyle(cellNumberStyle); break;
+                        case 5: cell = row.createCell(b); cell.setCellValue(sale.getCedis()); cell.setCellStyle(cellNumberStyle); break;
+                        case 6: cell = row.createCell(b); cell.setCellValue(sale.getDestinatario()); cell.setCellStyle(cellNumberStyle); break;
+                        case 7: cell = row.createCell(b); cell.setCellValue(sale.getNombreDestinatario()); cell.setCellStyle(cellStyle); break; 
+                        case 8: cell = row.createCell(b); cell.setCellValue(sale.getFacturaRemisionSicav()); cell.setCellStyle(cellStyle); break; 
+                        case 9: cell = row.createCell(b); NumberFormat format = NumberFormat.getInstance(Locale.US); Number number = format.parse(sale.getImporte()); cell.setCellValue(number.doubleValue()); cell.setCellStyle(cellDecimalStyle); break;
                     }
                 }
             }
             
             lastRowIndex = countRow + 1; 
-            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 2, 5), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
-            refundSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 7, 9), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            saleSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 1, 2), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            saleSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 4, 6), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
+            saleSheet.addIgnoredErrors(new CellRangeAddress(firstRowIndex - 1, lastRowIndex, 9, 9), IgnoredErrorType.NUMBER_STORED_AS_TEXT);
             
-            row = refundSheet.createRow(countRow); 
+            saleSheet.setZoom(75);
             
-            countRow = countRow + 1; 
-            
-            row = refundSheet.createRow(countRow);
-            
-            cell = row.createCell(9); cell.setCellType(CellType.FORMULA); cell.setCellFormula("SUM(I"+ firstRowIndex +":I"+ lastRowIndex +")"); cell.setCellStyle(currencyStyle);
-            
-            XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
-            
-            for(int d = 0; d < columnNames.size(); d++)
-            {
-                refundSheet.autoSizeColumn(d);
-            }*/
             
             XSSFFormulaEvaluator.evaluateAllFormulaCells(book);
             

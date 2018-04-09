@@ -8,11 +8,14 @@ import com.dobleo.rpa.file.OutputExcelFile;
 import com.dobleo.rpa.file.Perception;
 import com.dobleo.rpa.file.Rule;
 import com.dobleo.rpa.file.Validation;
+import com.dobleo.rpa.models.Administration;
 import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
+import com.dobleo.rpa.models.Folio;
 import com.dobleo.rpa.models.Link;
 import com.dobleo.rpa.models.Reception;
 import com.dobleo.rpa.models.Sale;
+import com.dobleo.rpa.models.Square;
 import com.novayre.jidoka.client.api.IJidokaRobot;
 import com.novayre.jidoka.client.api.IJidokaServer;
 import com.novayre.jidoka.client.api.IRobot;
@@ -44,8 +47,10 @@ import com.monitorjbl.xlsx.StreamingReader;
 import com.novayre.jidoka.client.api.execution.IUsernamePassword;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TreeSet;
 import javax.mail.Message;
 import org.apache.poi.ss.usermodel.CellType;
 
@@ -84,6 +89,8 @@ public class MyRobot implements IRobot {
         private int totalListMail = 0;
         private DatabaseUtilities databaseUtilities;
 	private String databasePath;
+        private String adminExcelFilePath;
+        private String squareExcelFilePath;
         private String branchExcelFilePath;
         private String excelFilePath; 
         private String currentExcelFilePath;
@@ -92,6 +99,8 @@ public class MyRobot implements IRobot {
         private String folioNumber;
         private String pastFolioNumber;
         private String laterFolioNumber;
+        private String adminFileName;
+        private String squareFileName;
         private String branchFileName;
         private String excelFileName;
         private String currentfileName;
@@ -100,6 +109,8 @@ public class MyRobot implements IRobot {
         private String incidencePercentage;
         private String username;
         private String password;
+        private static final String PARAM_ADMIN_INPUT_FILE = "administracion";
+        private static final String PARAM_SQUARE_INPUT_FILE = "plazas"; 
         private static final String PARAM_BRANCH_INPUT_FILE = "sucursales";
         private static final String PARAM_CURRENT_INPUT_FILE = "folioBase";
         private static final String PARAM_PAST_INPUT_FILE = "folioPasado"; 
@@ -110,6 +121,8 @@ public class MyRobot implements IRobot {
         private static final String TABLE_RECEPTIONS = "recepciones";
         private static final String TABLE_SALES = "ventas";
         private static final String TABLE_BRANCH = "sucursales"; 
+        private static final String TABLE_SQUARE = "plazas"; 
+        private static final String TABLE_ADMIN = "administracion"; 
         private static final String TABLE_VIRTUAL_RECEPTIONS = "virtual_recepciones"; 
         private static final String TABLE_VIRTUAL_SALES = "virtual_ventas";
         private static final String TABLE_VIRTUALS_MOORAGE = "virtual_amarre"; 
@@ -120,6 +133,9 @@ public class MyRobot implements IRobot {
         private Map<Integer, String> virtualMoorageColumns;
         private Map<Integer, String> salesColumns;
         private Map<Integer, String> branchsColumns;
+        private Map<Integer, String> squareColumns;
+        private Map<Integer, String> adminColumns;
+        private ArrayList<Folio> listFolio;
         private ArrayList<EmailMessage> listEmailMessages;
         private ArrayList<Link> listFirstJoin; 
         private ArrayList<Link> listTenPoint;
@@ -127,9 +143,11 @@ public class MyRobot implements IRobot {
         private ArrayList<Integer> listRemoveIdReceptionNotMatch;
         private ArrayList<Integer> listIdSaleNotMatch;
         private ArrayList<Integer> listRemoveIdSaleNotMatch;
+        private ArrayList<Integer> listSquareClients;
         private IUsernamePassword credential;
         private ReadEmail readEmail;
         private OutputExcelFile outputExcelFile; 
+        private Folio folio;
 	/**
 	 * Action "start"
 	 * @return
@@ -150,7 +168,8 @@ public class MyRobot implements IRobot {
 		server.getParameters().entrySet().forEach((e) -> {
 			server.debug(String.format("Parámetro [%s] = [%s]", e.getKey(), e.getValue()));
 		});
-
+                
+                
 		// other log types availables
 		//server.warn("Warn example");
 		//server.error("And error example");
@@ -174,14 +193,20 @@ public class MyRobot implements IRobot {
                 listRemoveIdReceptionNotMatch = new ArrayList<Integer>();
                 listIdSaleNotMatch = new ArrayList<Integer>();
                 listRemoveIdSaleNotMatch = new ArrayList<Integer>();
+                listFolio = new ArrayList<Folio>();
+                adminFileName = server.getParameters().get(PARAM_ADMIN_INPUT_FILE);
+                squareFileName = server.getParameters().get(PARAM_SQUARE_INPUT_FILE); 
                 branchFileName = server.getParameters().get(PARAM_BRANCH_INPUT_FILE);
                 currentfileName = server.getParameters().get(PARAM_CURRENT_INPUT_FILE);
                 pastFileName = server.getParameters().get(PARAM_PAST_INPUT_FILE);
                 laterFileName = server.getParameters().get(PARAM_LATER_INPUT_FILE);
+                adminExcelFilePath = Paths.get(server.getCurrentDir(), adminFileName).toString();
+                squareExcelFilePath = Paths.get(server.getCurrentDir(), squareFileName).toString(); 
                 branchExcelFilePath = Paths.get(server.getCurrentDir(), branchFileName).toString();
                 currentExcelFilePath = Paths.get(server.getCurrentDir(), currentfileName).toString();
                 //pastExcelFilePath = Paths.get(server.getCurrentDir(), pastFileName).toString();
-                incidencePercentage = server.getParameters().get(PARAM_INCIDENCE_PERCENTAGE);                
+                incidencePercentage = server.getParameters().get(PARAM_INCIDENCE_PERCENTAGE);     
+                
                 
                 IUsernamePassword credential = server.getCredentials("LALA_POC_TEST").get(0);
                 
@@ -232,7 +257,13 @@ public class MyRobot implements IRobot {
             salesColumns = databaseUtilities.getSalesColumns();
             server.info("Initialization sucursales Table Columns");
             databaseUtilities.branchTableColumns();
-            branchsColumns = databaseUtilities.getBranchColumns(); 
+            branchsColumns = databaseUtilities.getBranchColumns();
+            server.info("Initialization plazas Table Columns");
+            databaseUtilities.squareTableColumns();
+            squareColumns = databaseUtilities.getSquareColumns();
+            server.info("Initialization administracion Table Columns");
+            databaseUtilities.administrationTableColumns();
+            adminColumns = databaseUtilities.getAdministrationColumns();
             server.info("Initialization Virtual ventas Table Columns");
             databaseUtilities.virtualSaleTableColumns();
             virtualSalesColumns = databaseUtilities.getVirtualSalesColumns();
@@ -244,6 +275,8 @@ public class MyRobot implements IRobot {
             //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_RECEPTIONS, virtualReceptionsColumns);
             databaseUtilities.createTable(server, databasePath, TABLE_SALES, salesColumns);
             databaseUtilities.createTable(server, databasePath, TABLE_BRANCH, branchsColumns); 
+            databaseUtilities.createTable(server, databasePath, TABLE_SQUARE, squareColumns); 
+            databaseUtilities.createTable(server, databasePath, TABLE_ADMIN, adminColumns); 
             //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUAL_SALES, virtualSalesColumns);
             //databaseUtilities.createVirtualTable(server, databasePath, TABLE_VIRTUALS_MOORAGE, virtualMoorageColumns);
         }
@@ -268,10 +301,13 @@ public class MyRobot implements IRobot {
             {
                if(listEmailMessages.size() > 0)
                {
+                   folio = new Folio();
+                   folio.setEstado(false);
                    numberOfItems = listEmailMessages.size();
                    server.setNumberOfItems(numberOfItems);
                    server.setCurrentItem(currentItemIndex, "Correo electronico: " + readEmail.getFrom() +  " Asunto: " + listEmailMessages.get(currentItemIndex - 1).getSubject());
                    server.info("Dirreccion del servidor: " + server.getCurrentDir());
+                   folio.setMensaje(listEmailMessages.get(currentItemIndex - 1));
                    excelFileName = readEmail.formatInformationFromEmailContent(listEmailMessages.get(currentItemIndex - 1));
                    outputExcelFile.createExcelFile(server, excelFileName);
                }
@@ -282,12 +318,19 @@ public class MyRobot implements IRobot {
         {
             server.info("Create Excel File: " + excelFileName);
             Rule rule = null; 
+            String folioType = null;
+            SimpleDateFormat simpleDateFormat;
+            Date date = null;
+            HashSet<String> folioDateWeek = null;
+            TreeSet<String> folioLimitDateWeek = null;
             ArrayList<String> columnNames = null;
             ArrayList<String> idSAPBranch = null;
+            ArrayList<Date> listCurrentDateFolio = null;
             ArrayList<Header> headers = null;
             ArrayList<Perception> perceptions = null;
             ArrayList<Perception> invalidPerceptions = null;
             ArrayList<Perception> refunds = null;
+            ArrayList<Sale> listAdminSale = null;
             if(outputExcelFile != null && listEmailMessages != null && readEmail != null)
             {
                 if(listEmailMessages.size() > 0)
@@ -301,12 +344,113 @@ public class MyRobot implements IRobot {
                     {
                         if(headers.size() > 0 && columnNames.size() > 0 && perceptions.size() > 0)
                         {
+                            /*folioDateWeek = new HashSet<String>();
+                            listCurrentDateFolio = new ArrayList<Date>(); 
+                            for(Header header: headers)
+                            {
+                                for(int a = 0; a < 3; a++)
+                                {
+                                    switch(a)
+                                    {
+                                        case 0:
+                                        if(StringUtils.isNotBlank(header.getColumn1()) && StringUtils.isNotEmpty(header.getColumn1()))
+                                        {
+                                            folioType = header.getColumn1().replace(" ", "").toUpperCase();
+                                            if(folioType.contains("COMERCIALIZADORA"))
+                                            {
+                                                folio.setTipo(2); 
+                                            }
+                                            else if(folioType.contains("INNOVACION"))
+                                            {
+                                                folio.setTipo(1);
+                                            }
+                                        }
+                                        break;
+                                    case 1:
+                                        if(StringUtils.isNotBlank(header.getColumn2()) && StringUtils.isNotEmpty(header.getColumn2()))
+                                        {
+                                            folioType = header.getColumn2().replace(" ", "").toUpperCase();
+                                            if(folioType.contains("COMERCIALIZADORA"))
+                                            {
+                                                folio.setTipo(2);
+                                            }
+                                            else if(folioType.contains("INNOVACION"))
+                                            {
+                                                folio.setTipo(1);
+                                            }
+                                        }
+                                        break;
+                                    case 2: 
+                                        if(StringUtils.isNotBlank(header.getColumn3()) && StringUtils.isNotEmpty(header.getColumn3()))
+                                        {
+                                            folioType = header.getColumn3().replace(" ", "").toUpperCase();
+                                            if(folioType.contains("COMERCIALIZADORA"))
+                                            {
+                                                folio.setTipo(2);
+                                            }
+                                            else if(folioType.contains("INNOVACION"))
+                                            {
+                                                folio.setTipo(1);
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    
+                                    if(folio.getTipo() != 0)
+                                    {
+                                        break;
+                                    }
+                                }
+                                
+                                if(folio.getTipo() != 0)
+                                {
+                                    break;
+                                }
+                            }
+                            
+                            
+                            for(Perception perception: perceptions)
+                            {
+                                if(StringUtils.isNotBlank(perception.getFecha()) && StringUtils.isNotEmpty(perception.getFecha()))
+                                {
+                                    if(StringUtils.countMatches(perception.getFecha(), "-") == 2)
+                                    {
+                                        folioDateWeek.add(perception.getFecha()); 
+                                    }
+                                }
+                            }
+                            
+                            folioLimitDateWeek = new TreeSet();
+                            folioLimitDateWeek.addAll(folioDateWeek);
+                            
+                            simpleDateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US); 
+                            
+                            for(String dateString: folioLimitDateWeek)
+                            {
+                                date = null;
+                                date = simpleDateFormat.parse(dateString);
+                                listCurrentDateFolio.add(date); 
+                            }
+                            
+                            
+                            for(Date dateS: listCurrentDateFolio)
+                            {
+                                server.info("Antes de ordenar: " + simpleDateFormat.format(dateS)); 
+                            }
+                            listCurrentDateFolio.sort((date1, date2) -> date1.compareTo(date2));
+                            
+                            for(Date dateSS: listCurrentDateFolio)
+                            {
+                                server.info("Despues de ordenar: " + simpleDateFormat.format(dateSS)); 
+                            }*/
+                            
                             rule = new Rule();
                             idSAPBranch = new ArrayList<String>();
                             server.info("Create Folio Sheet into current Excel File"); 
                             outputExcelFile.createFolioSheet(server, excelFileName, columnNames, headers, perceptions); 
                             rule.asignRule(invalidPerceptions);
                             server.info("Create " + excelFileName.substring(excelFileName.lastIndexOf("_") + 1, excelFileName.length()) + " Sheet into current Excel File"); 
+                            
                             outputExcelFile.createFolioNumberSheet(server, excelFileName, columnNames, headers, perceptions, rule.getListPerception()); 
                             
                             columnNames.add("Sucursal");
@@ -317,7 +461,12 @@ public class MyRobot implements IRobot {
                             }
                             
                             outputExcelFile.createRefundSheet(server, excelFileName, columnNames, refunds, idSAPBranch);
-                            outputExcelFile.createSaleSheet(server, excelFileName, null); 
+                            
+                            listSquareClients = databaseUtilities.getClientsByCr(server, databasePath, "10ZAI", 2);
+                            listAdminSale = databaseUtilities.getSaleFromAdministration(server, databasePath, listSquareClients, "2018-02-19", "2018-02-24", "2002", "4128");
+                            
+                            
+                            outputExcelFile.createSaleSheet(server, excelFileName, listAdminSale); 
                             outputExcelFile.createMoorageSheet(server, excelFileName, null); 
                             server.info("Success creation of Excel File: " + excelFileName);
                         }
@@ -741,6 +890,233 @@ public class MyRobot implements IRobot {
             book.close();
         }
         
+        public void readExcelSquare() throws Exception
+        {   
+            int times = 0;
+            int columnNumberRow = 0;
+            int totalColumn = 0;
+            int maxColumnNumberRow = 0;
+            int totalCellBlank = 0;
+            int columnIndex = 0;
+            Iterator<Cell> iteratorCell = null;
+            ArrayList<Square> listSquare = new ArrayList<Square>(); 
+            String cellValue = null;
+            String sucursalLALA = "";
+            String sucursalOXXO = ""; 
+        
+            Square square = new Square(); 
+            Workbook book = null;
+            Sheet squareSheet = null;
+            InputStream inputFile = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(squareExcelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            //book = WorkbookFactory.create(inputFile);
+            book = StreamingReader.builder().open(inputFile);
+            server.info("Get Sheet from Excel File");
+            squareSheet = book.getSheet("Plaza");
+            server.info("Read All Filled Row From Sheet: " + squareSheet.getSheetName()); 
+            server.info("Insert Data Information Into plazas Table");
+            
+            for(Row row: squareSheet)
+            {
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+
+                totalCellBlank = 0;
+                iteratorCell = null;
+                square = null;
+                square = new Square();
+                
+                totalColumn = columnNumberRow;
+                /*if(columnNumberRow > 16)
+                {
+                    totalColumn = columnNumberRow - 3;
+                }
+                else 
+                {
+                    totalColumn = columnNumberRow;
+                }*/
+                
+                if(totalColumn != 7)
+                {
+                    server.info("Valor es: " + totalColumn); 
+                }
+                
+                iteratorCell = row.cellIterator();
+
+                
+
+                if(totalColumn == 7 && times > 1)
+                {
+                    columnIndex = 0; 
+                    for(int b = 0; b < totalColumn; b++)
+                    {
+                        dataFormatter = new DataFormatter();
+                        cellValue = null;
+                        if(row.getCell(b).getCellTypeEnum() != CellType.FORMULA)
+                        {
+                            cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                        }
+                        else 
+                        {
+                            cellValue = row.getCell(b).getStringCellValue().replace("\"", "");
+                        }
+                        
+                            switch(b)
+                            {
+                                case 0: if(StringUtils.isBlank(cellValue)){square.setIdentificador("");}else{square.setIdentificador(cellValue);} columnIndex++; break;
+                                case 1: if(StringUtils.isBlank(cellValue)){square.setCliente("");}else{square.setCliente(cellValue);} columnIndex++; break;
+                                case 2: if(StringUtils.isBlank(cellValue)){square.setDiv("");}else{square.setDiv(cellValue);} columnIndex++; break;
+                                case 3: if(StringUtils.isBlank(cellValue)){square.setCe("");}else{square.setCe(cellValue);} columnIndex++; break;
+                                case 4: if(StringUtils.isBlank(cellValue)){square.setCr("");}else{square.setCr(cellValue);} columnIndex++; break;
+                                case 5: if(StringUtils.isBlank(cellValue)){square.setPlazaCedis("");}else{square.setPlazaCedis(cellValue);} columnIndex++; break;
+                                case 6: if(StringUtils.isBlank(cellValue)){square.setAnalista("");}else{square.setAnalista(cellValue);} columnIndex++; break;
+                                default: break;
+                            }
+                        //}
+
+                    }
+                    listSquare.add(square);
+                    //databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                }
+                
+                times = times + 1;
+
+
+            }
+            databaseUtilities.insertIntoSquare(server, databasePath, TABLE_SQUARE, squareColumns, listSquare);
+            server.info("Insert Data Information into plazas Table was sucessful");
+            server.info("Close Excel File"); 
+            book.close();
+            
+        }
+        
+        public void readExcelAdmin() throws Exception
+        {   
+            int times = 0;
+            int columnNumberRow = 0;
+            int totalColumn = 0;
+            int maxColumnNumberRow = 0;
+            int totalCellBlank = 0;
+            int columnIndex = 0;
+            Iterator<Cell> iteratorCell = null;
+            ArrayList<Administration> listAdmin = new ArrayList<Administration>(); 
+            String cellValue = null;
+            String sucursalLALA = "";
+            String sucursalOXXO = ""; 
+            Date date = null;
+            SimpleDateFormat dateFormat = null;
+            Administration administration = new Administration(); 
+            Workbook book = null;
+            Sheet adminSheet = null;
+            InputStream inputFile = null;
+            DataFormatter dataFormatter = new DataFormatter();
+            server.info("Open Excel File"); 
+            inputFile = new FileInputStream(new File(adminExcelFilePath));
+            server.info("Obtain Workbook from Excel File");
+            book = WorkbookFactory.create(inputFile);
+            //book = StreamingReader.builder().open(inputFile);
+            server.info("Get Sheet from Excel File");
+            adminSheet = book.getSheetAt(0);
+            server.info("Read All Filled Row From Sheet: " + adminSheet.getSheetName()); 
+            server.info("Insert Data Information Into administracion Table");
+            
+            for(Row row: adminSheet)
+            {
+                if(row == null)
+                {
+                    break;
+                }
+                
+                columnNumberRow = row.getLastCellNum();
+
+                totalCellBlank = 0;
+                iteratorCell = null;
+                administration = null;
+                administration = new Administration();
+                
+                totalColumn = columnNumberRow;
+                /*if(columnNumberRow > 16)
+                {
+                    totalColumn = columnNumberRow - 3;
+                }
+                else 
+                {
+                    totalColumn = columnNumberRow;
+                }*/
+                
+                if(totalColumn != 14)
+                {
+                    server.info("Valor es: " + totalColumn); 
+                }
+                
+                iteratorCell = row.cellIterator();
+
+                
+
+                if(totalColumn == 14 && times > 3)
+                {
+                    columnIndex = 0; 
+                    for(int b = 0; b <= totalColumn; b++)
+                    {
+                        dataFormatter = new DataFormatter();
+                        cellValue = null;
+                        cellValue = dataFormatter.formatCellValue(row.getCell(b));
+                        
+                        
+                            switch(b)
+                            {
+                                case 0: columnIndex++; break;
+                                case 1: if(StringUtils.isBlank(cellValue)){administration.setDocumento("");}else{administration.setDocumento(cellValue);} columnIndex++; break;
+                                case 2: if(StringUtils.isBlank(cellValue)){administration.setFactura("");}else{administration.setFactura(cellValue);} columnIndex++; break;
+                                case 3: if(StringUtils.isBlank(cellValue)){administration.setFolio("");}else{administration.setFolio(cellValue);} columnIndex++; break;
+                                case 4: if(StringUtils.isBlank(cellValue)){administration.setZona("");}else{administration.setZona(cellValue);} columnIndex++; break;
+                                case 5: if(StringUtils.isBlank(cellValue)){administration.setCliente("");}else{administration.setCliente(cellValue);} columnIndex++; break;
+                                case 6: if(StringUtils.isBlank(cellValue)){administration.setCentro("");}else{administration.setCentro(cellValue);} columnIndex++; break;
+                                case 7: if(StringUtils.isBlank(cellValue)){administration.setCedis("");}else{administration.setCedis(cellValue);} columnIndex++; break;
+                                case 8: if(StringUtils.isBlank(cellValue)){administration.setSucursalSAP("");}else{administration.setSucursalSAP(cellValue);} columnIndex++; break;
+                                case 9: if(StringUtils.isBlank(cellValue)){administration.setSucursal("");}else{administration.setSucursal(cellValue);} columnIndex++; break;
+                                case 10: if(StringUtils.isBlank(cellValue)){administration.setRemision("");}else{administration.setRemision(cellValue);} columnIndex++; break;
+                                case 11: 
+                                    if(StringUtils.isBlank(cellValue))
+                                    {
+                                        administration.setFecha("");
+                                        administration.setFecha2("");
+                                    }
+                                    else
+                                    {
+                                        administration.setFecha(cellValue);
+                                        dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+                                        date = dateFormat.parse(cellValue);
+                                        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                        administration.setFecha2(dateFormat.format(date));
+                                    } columnIndex++; break;
+                                case 12: if(StringUtils.isBlank(cellValue)){administration.setImporte("");}else{administration.setImporte(cellValue);} columnIndex++; break;
+                                case 13: if(StringUtils.isBlank(cellValue)){administration.setAcuseRecibo("");}else{administration.setAcuseRecibo(cellValue);} columnIndex++; break;
+                                default: break;
+                            }
+                        //}
+
+                    }
+                    listAdmin.add(administration);
+                    //databaseUtilities.insertIntoReception(server, databasePath, TABLE_RECEPTIONS, receptionsColumns, reception);
+                }
+                
+                times = times + 1;
+
+
+            }
+            databaseUtilities.insertIntoAdministration(server, databasePath, TABLE_ADMIN, adminColumns, listAdmin);
+            server.info("Insert Data Information into plazas Table was sucessful");
+            server.info("Close Excel File"); 
+            book.close();
+        }
         
         public void readExcelFolioSheet() throws Exception
         {
@@ -3162,6 +3538,9 @@ public class MyRobot implements IRobot {
             {
                 server.setCurrentItemResultToOK();
                 readEmail.sendEmailWithAttachment(excelFileName); 
+                folio.setEstado(true);
+                listFolio.add(folio);
+                server.info("Tamaño del Folio: " + listFolio.size());
                 if(currentItemIndex == listEmailMessages.size()) 
                 {
                     response = "no"; 

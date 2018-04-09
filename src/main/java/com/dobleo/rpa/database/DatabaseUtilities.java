@@ -6,11 +6,13 @@
 package com.dobleo.rpa.database;
 
 import com.dobleo.rpa.file.Perception;
+import com.dobleo.rpa.models.Administration;
 import com.dobleo.rpa.models.Branch;
 import com.dobleo.rpa.models.Document;
 import com.dobleo.rpa.models.Link;
 import com.dobleo.rpa.models.Reception;
 import com.dobleo.rpa.models.Sale;
+import com.dobleo.rpa.models.Square;
 import com.novayre.jidoka.client.api.IJidokaServer;
 import java.io.File;
 import java.io.PrintWriter;
@@ -39,6 +41,8 @@ public class DatabaseUtilities {
     private Map<Integer, String> virtualReceptionsColumns;
     private Map<Integer, String> salesColumns;
     private Map<Integer, String> branchColumns;
+    private Map<Integer, String> squareColumns;
+    private Map<Integer, String> administrationColumns;
     private Map<Integer, String> virtualSalesColumns;
     private Map<Integer, String> virtualTableColumns;
 
@@ -96,6 +100,22 @@ public class DatabaseUtilities {
 
     public void setBranchColumns(Map<Integer, String> branchColumns) {
         this.branchColumns = branchColumns;
+    }
+
+    public Map<Integer, String> getSquareColumns() {
+        return squareColumns;
+    }
+
+    public void setSquareColumns(Map<Integer, String> squareColumns) {
+        this.squareColumns = squareColumns;
+    }
+
+    public Map<Integer, String> getAdministrationColumns() {
+        return administrationColumns;
+    }
+
+    public void setAdministrationColumns(Map<Integer, String> administrationColumns) {
+        this.administrationColumns = administrationColumns;
     }
     
     public static String createNewDatabase(IJidokaServer<?> server, String dbname) {
@@ -255,6 +275,8 @@ public class DatabaseUtilities {
                     case "recepciones": tableColumnInformation = receptionTable(columnName); break;
                     case "ventas": tableColumnInformation = saleTable(columnName); break;
                     case "sucursales": tableColumnInformation = branchTable(columnName); break; 
+                    case "plazas": tableColumnInformation = squareTable(columnName); break; 
+                    case "administracion": tableColumnInformation = administrationTable(columnName); break; 
                     case "virtual_recepciones": tableColumnInformation = virtualReceptionTable(columnName); break;
                     case "virtual_ventas": tableColumnInformation = virtualSaleTable(columnName); break;
                     case "virtual_amarre": tableColumnInformation = virtualMoorageTable(columnName); break;
@@ -799,6 +821,137 @@ public class DatabaseUtilities {
         }
     }
     
+    public static void insertIntoSquare(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Square> listSquare)
+    {
+        try
+        {
+            int times = 0;
+            String squareInformation = "";
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement prepareStatement = null;
+            StringBuilder sqlQuery = new StringBuilder();
+            sqlQuery.append("INSERT INTO plazas");
+            sqlQuery.append(" (");
+            if(columns != null)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    sqlQuery.append(columns.get(a));
+                    sqlQuery.append(",");
+                }
+                sqlQuery.deleteCharAt(sqlQuery.lastIndexOf(","));
+            }
+            
+            sqlQuery.append(")"); 
+            sqlQuery.append(" VALUES");
+            sqlQuery.append(" (");
+            squareInformation = squareInformation(columns);
+            sqlQuery.append(squareInformation);
+            sqlQuery.append(");");
+            prepareStatement = connection.prepareStatement(sqlQuery.toString());
+            for(Square square: listSquare)
+            {
+                prepareStatement.setString(1, square.getIdentificador());
+                prepareStatement.setString(2, square.getCliente());
+                prepareStatement.setString(3, square.getDiv());
+                prepareStatement.setString(4, square.getCe());
+                prepareStatement.setString(5, square.getCr());
+                prepareStatement.setString(6, square.getPlazaCedis());
+                prepareStatement.setString(7, square.getAnalista());
+                prepareStatement.addBatch();
+                times++;
+                
+                if(times % 1000 == 0 || times == listSquare.size())
+                {
+                    prepareStatement.executeBatch();
+                }
+            }
+            
+            prepareStatement.executeBatch();
+            prepareStatement.close();
+            connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
+    public static void insertIntoAdministration(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Administration> listAdmin)
+    {
+        try
+        {
+            int times = 0;
+            String administrationInformation = "";
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement prepareStatement = null;
+            StringBuilder sqlQuery = new StringBuilder();
+            sqlQuery.append("INSERT INTO administracion");
+            sqlQuery.append(" (");
+            if(columns != null)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    sqlQuery.append(columns.get(a));
+                    sqlQuery.append(",");
+                }
+                sqlQuery.deleteCharAt(sqlQuery.lastIndexOf(","));
+            }
+            
+            sqlQuery.append(")"); 
+            sqlQuery.append(" VALUES");
+            sqlQuery.append(" (");
+            administrationInformation = administrationInformation(columns);
+            sqlQuery.append(administrationInformation);
+            sqlQuery.append(");");
+            prepareStatement = connection.prepareStatement(sqlQuery.toString());
+            for(Administration admin: listAdmin)
+            {
+                prepareStatement.setString(1, admin.getDocumento());
+                prepareStatement.setString(2, admin.getFactura());
+                prepareStatement.setString(3, admin.getFolio());
+                prepareStatement.setString(4, admin.getZona());
+                prepareStatement.setString(5, admin.getCliente());
+                prepareStatement.setString(6, admin.getCentro());
+                prepareStatement.setString(7, admin.getCedis());
+                prepareStatement.setString(8, admin.getSucursalSAP());
+                prepareStatement.setString(9, admin.getSucursal());
+                prepareStatement.setString(10, admin.getRemision());
+                prepareStatement.setString(11, admin.getFecha());
+                prepareStatement.setString(12, admin.getFecha2());
+                prepareStatement.setString(13, admin.getImporte());
+                prepareStatement.setString(14, admin.getAcuseRecibo());
+                prepareStatement.addBatch();
+                times++;
+                
+                if(times % 1000 == 0 || times == listAdmin.size())
+                {
+                    prepareStatement.executeBatch();
+                }
+            }
+            
+            prepareStatement.executeBatch();
+            prepareStatement.close();
+            connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+    }
+    
     public static void insertIntoVirtualMoorage(IJidokaServer<?> server, String url, String tableName, Map<Integer, String> columns, ArrayList<Link> listLink)
     {
         try
@@ -1196,6 +1349,69 @@ public class DatabaseUtilities {
         return saleInformation; 
     }
     
+    public static String squareInformation(Map<Integer, String> columns)
+    {
+        String squareInformation = "";
+        //if(columns != null && sale != null)
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: squareInformation += "NULL,"; break;
+                        case 1: squareInformation += "?,"; break;
+                        case 2: squareInformation += "?,"; break;
+                        case 3: squareInformation += "?,"; break;
+                        case 4: squareInformation += "?,"; break;
+                        case 5: squareInformation += "?,"; break;
+                        case 6: squareInformation += "?,"; break; 
+                        case 7: squareInformation += "?"; break;
+                        default: squareInformation += "?"; break;
+                    }
+                }
+            }
+        }
+        return squareInformation; 
+    }
+    
+    public static String administrationInformation(Map<Integer, String> columns)
+    {
+        String squareInformation = "";
+        //if(columns != null && sale != null)
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: squareInformation += "NULL,"; break;
+                        case 1: squareInformation += "?,"; break;
+                        case 2: squareInformation += "?,"; break;
+                        case 3: squareInformation += "?,"; break;
+                        case 4: squareInformation += "?,"; break;
+                        case 5: squareInformation += "?,"; break;
+                        case 6: squareInformation += "?,"; break; 
+                        case 7: squareInformation += "?,"; break;
+                        case 8: squareInformation += "?,"; break;
+                        case 9: squareInformation += "?,"; break;
+                        case 10: squareInformation += "?,"; break;
+                        case 11: squareInformation += "?,"; break;
+                        case 12: squareInformation += "?,"; break;
+                        case 13: squareInformation += "?,"; break;
+                        case 14: squareInformation += "?"; break;
+                        default: squareInformation += "?"; break;
+                    }
+                }
+            }
+        }
+        return squareInformation; 
+    }
+    
     public static String saleTable(Map<Integer, String> columns)
     {
         String columnParameters = ""; 
@@ -1337,6 +1553,67 @@ public class DatabaseUtilities {
                         case 14: columnParameters += " " + columns.get(a) + " TEXT,"; break;
                         case 15: columnParameters += " " + columns.get(a) + " TEXT,"; break;
                         case 16: columnParameters += " " + columns.get(a) + " TEXT"; break;
+                        default: columnParameters += " TEXT,"; break; 
+                    }
+                }
+            }
+        }
+        return columnParameters;
+    }
+    
+    public static String squareTable(Map<Integer, String> columns)
+    {
+        String columnParameters = ""; 
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: columnParameters += columns.get(a) + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"; break;
+                        case 1: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 2: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 3: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 4: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 5: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 6: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 7: columnParameters += " " + columns.get(a) + " TEXT NOT NULL"; break;
+                        default: columnParameters += " TEXT,"; break; 
+                    }
+                }
+            }
+        }
+        return columnParameters;
+    }
+    
+    public static String administrationTable(Map<Integer, String> columns)
+    {
+        String columnParameters = ""; 
+        if(columns != null)
+        {
+            if(columns.size() > 0)
+            {
+                for(int a = 0; a < columns.size(); a++)
+                {
+                    switch(a)
+                    {
+                        case 0: columnParameters += columns.get(a) + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"; break;
+                        case 1: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 2: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 3: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 4: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 5: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 6: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 7: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 8: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 9: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 10: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 11: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 12: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 13: columnParameters += " " + columns.get(a) + " TEXT NOT NULL,"; break;
+                        case 14: columnParameters += " " + columns.get(a) + " TEXT NOT NULL"; break;
                         default: columnParameters += " TEXT,"; break; 
                     }
                 }
@@ -3075,6 +3352,140 @@ public class DatabaseUtilities {
         return listResult;
     }
     
+    public ArrayList<Integer> getClientsByCr(IJidokaServer<?> server, String url, String cr, int type)
+    {
+        ArrayList<Integer> listClients = new ArrayList<Integer>();
+        try
+        {
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement = null;
+            //Statement statement = connection.createStatement(); 
+            StringBuilder sqlQuery = new StringBuilder();
+            Sale sale = null;
+            ResultSet resultSet = null; 
+            sqlQuery.append("SELECT " + 
+            "cliente, " +
+            "CAST(cliente AS INTEGER) AS cliente2, " +
+            "div, " +
+            "SUBSTR(div, 1, 1) AS type " + 
+            "FROM plazas WHERE cr = ? AND type = ?");
+            server.info("Query:" + sqlQuery);
+            preparedStatement = connection.prepareStatement(sqlQuery.toString());
+            preparedStatement.setString(1, cr);
+            preparedStatement.setString(2, String.valueOf(type));
+            server.info("Query:" + sqlQuery.toString());
+            
+            resultSet = preparedStatement.executeQuery();
+            while(resultSet.next())
+            {
+                listClients.add(resultSet.getInt("cliente2"));
+            }
+            
+            resultSet.close();
+            preparedStatement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listClients = new ArrayList<Integer>(); 
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listClients;
+    }
+    
+    public ArrayList<Sale> getSaleFromAdministration(IJidokaServer<?> server, String url, ArrayList clients, String dateFrom, String dateTo, String zone, String center)
+    {
+        ArrayList<Sale> listSaleAdmin = new ArrayList<Sale>();
+        try
+        {
+            Connection connection = connectDatabase(server, url);
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement = null;
+            //Statement statement = connection.createStatement(); 
+            StringBuilder sqlQuery = null;
+            StringBuilder sqlInStatement = null;
+            Sale sale = null;
+            ResultSet resultSet = null; 
+            sqlQuery = new StringBuilder();
+            sqlInStatement = new StringBuilder();
+            sqlQuery.append("SELECT id, "
+                    + "documento, "
+                    + "factura, "
+                    + "folio, "
+                    + "zona, "
+                    + "cliente, "
+                    + "CAST(cliente AS INTEGER) AS cliente2, "
+                    + "centro, "
+                    + "CAST(centro AS INTEGER) AS centro2, "
+                    + "cedis, "
+                    + "sucursal_SAP, "
+                    + "sucursal, "
+                    + "remision, "
+                    + "fecha, "
+                    + "fecha2, "
+                    + "importe, "
+                    + "REPLACE(importe, ',', '') AS importe2, "
+                    + "acuse_recibo "
+                    + "FROM administracion WHERE (fecha2 >= ? AND fecha2 <= ?) AND (zona = ?) "); 
+            sqlQuery.append("AND (cliente2 IN(");
+            for(int a = 0; a < clients.size(); a++)
+            {
+                sqlInStatement.append(clients.get(a).toString());
+                sqlInStatement.append(","); 
+            }
+            sqlInStatement.deleteCharAt(sqlInStatement.lastIndexOf(","));
+            sqlQuery.append(sqlInStatement.toString());
+            sqlQuery.append(")"); 
+            sqlQuery.append(") AND ((centro = ?) OR (centro2 = 0));");
+            
+            server.info("Query:" + sqlQuery.toString());
+            preparedStatement = connection.prepareStatement(sqlQuery.toString());
+            preparedStatement.setString(1, dateFrom);
+            preparedStatement.setString(2, dateTo);
+            preparedStatement.setString(3, zone);
+            preparedStatement.setString(4, center);
+            
+            resultSet = preparedStatement.executeQuery();
+            while(resultSet.next())
+            {
+                sale = new Sale();
+                sale.setId(resultSet.getInt("id"));
+                sale.setFecha(resultSet.getString("fecha2"));
+                sale.setPedidoAdicional(resultSet.getString("acuse_recibo")); //
+                sale.setFactura(resultSet.getString("factura")); //
+                sale.setFolio(resultSet.getString("folio")); //
+                sale.setSolicitante(resultSet.getString("cliente")); //
+                sale.setCedis(resultSet.getString("centro")); //
+                sale.setDestinatario(resultSet.getString("sucursal_SAP")); //
+                sale.setNombreDestinatario(resultSet.getString("sucursal")); //
+                sale.setFacturaRemisionSicav(resultSet.getString("remision")); //
+                sale.setImporte(resultSet.getString("importe")); //
+                listSaleAdmin.add(sale);
+            }
+            
+            resultSet.close();
+            preparedStatement.close();
+            //connection.commit();
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+            listSaleAdmin = new ArrayList<Sale>(); 
+            server.info(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            server.error(sw.toString());
+        }
+        return listSaleAdmin;
+    }
+    
     public ArrayList<Link> crossVirtualTable(IJidokaServer<?> server, String url, int firstIdFolio, int secondIdFolio)
     {
         ArrayList<Link> listResult = new ArrayList<Link>(); 
@@ -3617,6 +4028,43 @@ public class DatabaseUtilities {
         branchColumns.put(14, "sucursal_OXXO2");
         branchColumns.put(15, "liquidacion");
         branchColumns.put(16, "venta_cruzada");
+    }
+    
+    public void squareTableColumns()
+    {
+        squareColumns = null;
+        squareColumns = new HashMap<Integer, String>();
+        
+        squareColumns.put(0, "id");
+        squareColumns.put(1, "identificador");
+        squareColumns.put(2, "cliente");
+        squareColumns.put(3, "div");
+        squareColumns.put(4, "ce");
+        squareColumns.put(5, "cr");
+        squareColumns.put(6, "plaza_cedis");
+        squareColumns.put(7, "analista");
+    }
+    
+    public void administrationTableColumns()
+    {
+        administrationColumns = null;
+        administrationColumns = new HashMap<Integer, String>();
+        
+        administrationColumns.put(0, "id");
+        administrationColumns.put(1, "documento");
+        administrationColumns.put(2, "factura");
+        administrationColumns.put(3, "folio");
+        administrationColumns.put(4, "zona");
+        administrationColumns.put(5, "cliente");
+        administrationColumns.put(6, "centro");
+        administrationColumns.put(7, "cedis");
+        administrationColumns.put(8, "sucursal_SAP");
+        administrationColumns.put(9, "sucursal");
+        administrationColumns.put(10, "remision");
+        administrationColumns.put(11, "fecha");
+        administrationColumns.put(12, "fecha2");
+        administrationColumns.put(13, "importe");
+        administrationColumns.put(14, "acuse_recibo");
     }
     
     public void virtualSaleTableColumns()
